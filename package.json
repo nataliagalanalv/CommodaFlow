@@ -1,5 +1,11 @@
 {
-  "dependencies": {
-    "react-router-dom": "^7.14.1"
+  "name": "commodaflow",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "server"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces" 
   }
 }

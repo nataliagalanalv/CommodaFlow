@@ -1,12 +1,12 @@
 # 🚀 CommodaFlow
 
-**CommodaFlow** es una plataforma profesional de gestión de tareas diseñada para optimizar el flujo de trabajo diario. Este proyecto combina un frontend robusto en **React + TypeScript** con una arquitectura de backend escalable, enfocándose en el tipado fuerte y la mantenibilidad.
+**CommodaFlow** es una solución para la **gestión de alquileres de hardware**. La plataforma permite controlar el inventario de equipos tecnológicos, gestionar contratos de alquiler y realizar un seguimiento en tiempo real del estado de cada activo.
 
 ---
 
 ## 📋 Gestión del Proyecto
 
-El seguimiento de tareas, hitos y sprints se realiza de forma centralizada en nuestro tablero:
+El seguimiento de funcionalidades, inventario de hardware y ciclos de desarrollo se gestiona en:
 > [👉 Acceder al Tablero de Trabajo (Trello/Jira)](https://trello.com/b/eg5xW5pC/commodaflow)
 
 ---
@@ -35,3 +35,13 @@ El proyecto sigue una organización modular para facilitar su escalabilidad:
 - `src/types/`: Definiciones globales de interfaces y tipos.
 - `server/`: Lógica de servidor y rutas de API.
 - `docs/`: Documentación técnica y de gestión.
+
+---
+
+## 🚀 Funcionalidades Clave
+
+- **Gestión de Inventario**: Registro detallado de hardware con especificaciones técnicas.
+- **Control de Estados**: Seguimiento de equipos (Disponible, Alquilado, En Mantenimiento).
+- **DataTable Genérica**: Visualización avanzada de activos con soporte para diferentes categorías de hardware.
+
+---

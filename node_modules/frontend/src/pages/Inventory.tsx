@@ -1,53 +1,27 @@
-import { useState } from 'react';
+import { useInventory } from '../hooks/useInventory';
+import { SearchBar } from '../components/SearchBar';
 import { HardwareCard } from '../components/HardwareCard';
-import { RentalModal } from '../components/RentalModal'; // Importamos el modal
-import type { Hardware } from '../types/hardware.types';
-
-const mockHardware: Hardware[] = [
-  { id: '1', model: 'Nvidia RTX 4090', specs: '24GB GDDR6X', dailyRate: 15, status: 'available' },
-  { id: '2', model: 'MacBook Pro M3', specs: '32GB RAM, 1TB SSD', dailyRate: 45, status: 'rented' },
-];
+import { mockHardware } from '../data/mockData'; // Imagina que movimos los datos aquí
 
 export const InventoryPage = () => {
-  // Estado para controlar qué equipo queremos alquilar
-  const [selectedHardware, setSelectedHardware] = useState<Hardware | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { items, isLoading, handleSearch } = useInventory(mockHardware);
 
-  const handleOpenRental = (item: Hardware) => {
-    setSelectedHardware(item);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseRental = () => {
-    setIsModalOpen(false);
-    setSelectedHardware(null);
-  };
+  if (isLoading) return <div className="p-8 text-center">Cargando equipos...</div>;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Inventario</h1>
+    <div className="p-8 max-w-7xl mx-auto space-y-6">
+      <header className="flex flex-col md:flex-row justify-between gap-4">
+        <h1 className="text-3xl font-bold">Inventario</h1>
+        <SearchBar onSearch={handleSearch} />
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {mockHardware.map((item) => (
-          <HardwareCard 
-            key={item.id} 
-            item={item} 
-            // Pasamos la función que abre el modal con los datos del item
-            onRent={() => handleOpenRental(item)} 
-          />
-        ))}
+        {items.length > 0 ? (
+          items.map(item => <HardwareCard key={item.id} item={item} onRent={() => {}} />)
+        ) : (
+          <p className="col-span-full text-center text-slate-500">No se encontraron equipos.</p>
+        )}
       </div>
-
-      {/* Renderizado condicional del Modal */}
-      {selectedHardware && (
-        <RentalModal 
-          item={selectedHardware} 
-          isOpen={isModalOpen} 
-          onClose={handleCloseRental} 
-        />
-      )}
     </div>
   );
 };

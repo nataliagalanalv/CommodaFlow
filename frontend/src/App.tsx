@@ -1,22 +1,33 @@
-
+import { Toaster, toast } from 'sonner';
+import { Navbar } from './components/NavBar';
+import { InventoryPage } from './pages/Inventory';
+import type { User } from './types/user.types';
 import './App.css'
 
 function App() {
+  // Mock de usuario para probar la Navbar
+  const mockUser = { name: 'Natalia', role: 'admin', email: 'n@test.com' } as User;
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md border-t-4 border-blue-500">
-        <h1 className="text-3xl font-bold text-gray-800 underline decoration-blue-500">
-          ¡Tailwind funcionando! 🚀
-        </h1>
-        <p className="mt-4 text-gray-600">
-          Si ves este texto con estilo, CommodaFlow está listo para el desarrollo.
-        </p>
-        <button className="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition-colors">
-          Probar botón
+    <div className="min-h-screen bg-slate-50">
+      {/* 1. Ponemos el Toaster aquí (solo una vez) */}
+      <Toaster position="bottom-right" richColors closeButton />
+      
+      <Navbar user={mockUser} />
+      
+      <main className="p-8">
+        <InventoryPage />
+        
+        {/* 2. Un botón de prueba para ver si funciona */}
+        <button 
+          onClick={() => toast.success('¡Librería instalada con éxito!')}
+          className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg"
+        >
+          Probar Toast
         </button>
-      </div>
+      </main>
     </div>
-  )
+  );
 }
 
 export default App

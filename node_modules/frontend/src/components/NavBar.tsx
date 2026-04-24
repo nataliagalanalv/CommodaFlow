@@ -1,29 +1,40 @@
-import React from 'react';
+import { useAuth } from '../hooks/useAuth'; // Importa el hook, no el contexto
 import { UserAvatar } from './UserAvatar';
-import type { User } from '../types/user.types';
 
-export const Navbar: React.FC<{ user: User }> = ({ user }) => {
+export const Navbar = () => {
+  // Ahora extraemos todo lo que necesitamos del estado global
+  const { user, logout, isAuthenticated } = useAuth();
+
   return (
-    <nav className="bg-white border-b border-slate-200 px-6 py-3 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-8">
-          <span className="text-xl font-bold text-indigo-600 tracking-tight">CommodaFlow</span>
-          <div className="hidden md:flex gap-6 text-sm font-medium text-slate-600">
-            <a href="#" className="hover:text-indigo-600 transition-colors">Inventario</a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">Alquileres</a>
-            {user.role === 'admin' && (
-              <a href="#" className="hover:text-indigo-600 transition-colors">Panel Admin</a>
-            )}
-          </div>
+    <nav className="flex justify-between items-center bg-white border-b border-slate-200 px-8 py-4">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold">C</span>
         </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-slate-900">{user.name}</p>
-            <p className="text-xs text-slate-500 capitalize">{user.role}</p>
+        <span className="text-xl font-bold tracking-tight text-slate-900">
+          Commoda<span className="text-indigo-600">Flow</span>
+        </span>
+      </div>
+
+      <div className="flex items-center gap-6">
+        {isAuthenticated ? (
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+              <button 
+                onClick={logout}
+                className="text-xs text-slate-500 hover:text-red-600 transition-colors"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+            <UserAvatar user={user!} size="sm" />
           </div>
-          <UserAvatar user={user} size="sm" />
-        </div>
+        ) : (
+          <button className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+            Iniciar Sesión
+          </button>
+        )}
       </div>
     </nav>
   );

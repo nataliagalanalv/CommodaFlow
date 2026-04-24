@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import type { Hardware } from '../types/hardware.types';
+import { useAuth } from '../hooks/useAuth';
 
 interface RentalModalProps {
   item: Hardware;
@@ -8,7 +9,10 @@ interface RentalModalProps {
   onClose: () => void;
 }
 
-export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose }) => {
+  export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose }) => {
+  const { user } = useAuth(); // Obtienes el usuario logueado
+  // ... tus estados de fechas
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -27,12 +31,18 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose 
 
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
-    if (totalPrice <= 0) {
-      toast.error('La fecha de fin debe ser posterior a la de inicio');
-      return;
-    }
     
-    toast.success(`¡Alquiler de ${item.model} confirmado por ${totalPrice}€!`);
+    // El objeto final que el Backend esperará:
+    const finalData = {
+      equipmentId: item.id,
+      userId: user?.id, // <--- Aquí asocias al usuario
+      startDate,
+      endDate,
+      totalPrice
+    };
+
+    console.log("Enviando a la API:", finalData);
+    toast.success(`Reserva confirmada para ${user?.name}`);
     onClose();
   };
 
@@ -49,18 +59,18 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose 
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Inicio</label>
                 <input 
                   type="date" 
-                  required
-                  className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
+                  value={startDate} // <--- Vinculamos el valor al estado
+                  onChange={(e) => setStartDate(e.target.value)} // <--- Actualizamos al escribir
+                  className="..."
+                  />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Fin</label>
                 <input 
                   type="date" 
-                  required
+                  value={endDate} // <--- Vinculamos el valor al estado
+                  onChange={(e) => setEndDate(e.target.value)} // <--- Actualizamos al escribir
                   className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                  onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
             </div>

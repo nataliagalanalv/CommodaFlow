@@ -4,19 +4,18 @@ import type { Hardware } from '../types/hardware.types';
 import { useAuth } from '../hooks/useAuth';
 
 interface RentalModalProps {
-  item: Hardware;
   isOpen: boolean;
   onClose: () => void;
+  item: Hardware;
+  onSuccess: () => void; // <--- Añade esta línea obligatoria
 }
 
-  export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose }) => {
-  const { user } = useAuth(); // Obtienes el usuario logueado
-  // ... tus estados de fechas
-
+  export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose, onSuccess }) => {
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Cálculo del precio total (se actualiza solo cuando cambian las fechas)
   const totalPrice = useMemo(() => {
     if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
@@ -29,21 +28,53 @@ interface RentalModalProps {
 
   if (!isOpen) return null;
 
-  const handleConfirm = (e: React.FormEvent) => {
+  const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // El objeto final que el Backend esperará:
-    const finalData = {
-      equipmentId: item.id,
-      userId: user?.id, // <--- Aquí asocias al usuario
-      startDate,
-      endDate,
-      totalPrice
-    };
+    if (!user) {
+      toast.error("Debes iniciar sesión para alquilar");
+      return;
+    }
 
-    console.log("Enviando a la API:", finalData);
-    toast.success(`Reserva confirmada para ${user?.name}`);
-    onClose();
+    if (totalPrice <= 0) {
+      toast.error("La fecha de fin debe ser posterior a la de inicio");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('http://localhost:3001/api/rentals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hardwareId: item.id,
+          userId: user.id,
+          startDate,
+          endDate,
+          totalPrice
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error en el servidor');
+      }
+
+      // 2. ¡EL MOMENTO CLAVE!
+      // Llamamos a la función que refresca el inventario
+      onSuccess(); 
+      
+      toast.success(`¡Reserva confirmada!`);
+      onClose();
+
+    } catch (error) {
+      console.error("Error al enviar:", error);
+      toast.error(error instanceof Error ? error.message : "Error de conexión");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,17 +90,17 @@ interface RentalModalProps {
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Inicio</label>
                 <input 
                   type="date" 
-                  value={startDate} // <--- Vinculamos el valor al estado
-                  onChange={(e) => setStartDate(e.target.value)} // <--- Actualizamos al escribir
-                  className="..."
-                  />
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Fin</label>
                 <input 
                   type="date" 
-                  value={endDate} // <--- Vinculamos el valor al estado
-                  onChange={(e) => setEndDate(e.target.value)} // <--- Actualizamos al escribir
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
                   className="w-full p-2 border border-slate-200 rounded-lg text-sm"
                 />
               </div>
@@ -80,7 +111,7 @@ interface RentalModalProps {
                 <span>Precio Total:</span>
                 <span className="text-xl">{totalPrice}€</span>
               </div>
-              <p className="text-[10px] text-indigo-400 mt-1 uppercase tracking-wider">Tarifa base: {item.dailyRate}€/día</p>
+              <p className="text-[10px] text-indigo-400 mt-1 uppercase tracking-wider"> Tarifa: {item.dailyRate}€/día</p>
             </div>
 
             <div className="flex gap-3 mt-6">
@@ -91,11 +122,12 @@ interface RentalModalProps {
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 type="submit"
-                className="flex-1 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-all"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold disabled:bg-slate-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition-colors"
               >
-                Confirmar Alquiler
+                {isSubmitting ? "Procesando..." : "Confirmar Alquiler"}
               </button>
             </div>
           </form>

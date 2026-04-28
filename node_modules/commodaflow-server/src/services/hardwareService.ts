@@ -1,19 +1,33 @@
-import { Hardware } from '../models/Hardware.js';
+import { Hardware, HardwareStatus } from '../models/Hardware.js';
 
-// Base de datos volátil (se borra al reiniciar el servidor)
-const mockHardware: Hardware[] = [
-  { id: '1', model: 'MacBook Pro M3', type: 'Laptop', dailyRate: 45, status: 'available' },
-  { id: '2', model: 'Sony A7 IV', type: 'Cámara', dailyRate: 60, status: 'rented' }
+// Mock data inicial
+let inventory: Hardware[] = [
+  { id: '1', model: 'MacBook Pro', specs: 'M2, 16GB', status: 'available', dailyRate: 45 },
+  { id: '2', model: 'Dell XPS', specs: 'i7, 32GB', status: 'rented', dailyRate: 35 }
 ];
 
-export const getAllHardware = () => mockHardware;
-
-export const createHardware = (data: Omit<Hardware, 'id' | 'status'>): Hardware => {
-  const newItem: Hardware = {
-    ...data,
-    id: Math.random().toString(36).substring(7),
-    status: 'available'
-  };
-  mockHardware.push(newItem);
-  return newItem;
+export const hardwareService = {
+  getAll: () => inventory,
+  
+  getById: (id: string) => inventory.find(h => h.id === id),
+  
+  // SOLUCIÓN AL ERROR: Añadimos la función 'create'
+  create: (data: Omit<Hardware, 'id'>) => {
+    const newHardware: Hardware = {
+      ...data,
+      id: Math.random().toString(36).substr(2, 9), // Generador de ID temporal
+      status: data.status || 'available'         // Status por defecto
+    };
+    inventory.push(newHardware);
+    return newHardware;
+  },
+  
+  updateStatus: (id: string, newStatus: HardwareStatus) => {
+    const item = inventory.find(h => h.id === id);
+    if (item) {
+      item.status = newStatus;
+      return item;
+    }
+    return null;
+  }
 };

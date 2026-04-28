@@ -1,22 +1,19 @@
-import { Rental } from '../models/Rental.js';
+import { hardwareService } from './hardwareService.js';
 
-// Base de datos volátil para Alquileres
-const mockRentals: Rental[] = [];
+export const rentalService = {
+  createRental: async (rentalData: any) => {
+    // 1. Buscamos si el equipo existe y está disponible
+    const hardware = hardwareService.getById(rentalData.hardwareId);
+    
+    if (!hardware) throw new Error("Equipo no encontrado");
+    if (hardware.status !== 'available') throw new Error("El equipo no está disponible para alquiler");
 
-export const getAllRentals = (): Rental[] => {
-  return mockRentals;
-};
+    // 2. Aquí guardarías el alquiler en tu array de rentals o DB...
+    const newRental = { ...rentalData, id: Date.now().toString() };
 
-export const getRentalsByUserId = (userId: string): Rental[] => {
-  return mockRentals.filter(r => r.userId === userId);
-};
+    // 3. ACTUALIZACIÓN AUTOMÁTICA: Cambiamos el estado del hardware
+    hardwareService.updateStatus(rentalData.hardwareId, 'rented');
 
-export const createRental = (data: Omit<Rental, 'id' | 'status'>): Rental => {
-  const newRental: Rental = {
-    ...data,
-    id: `rent_${Math.random().toString(36).substring(7)}`,
-    status: 'pending' // Todo alquiler empieza como pendiente
-  };
-  mockRentals.push(newRental);
-  return newRental;
+    return newRental;
+  }
 };

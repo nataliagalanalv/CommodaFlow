@@ -4,7 +4,7 @@ export type HardwareStatus = 'available' | 'rented' | 'maintenance';
 export interface Hardware {
   id: string;
   model: string;
-  type: string;
+  specs: string;
   dailyRate: number;
   status: HardwareStatus;
 }

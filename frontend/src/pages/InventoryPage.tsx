@@ -69,7 +69,7 @@ export const InventoryPage = () => {
       <header className="flex flex-col md:flex-row justify-between items-center gap-8">
         <div className="text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-black text-[#1A263C] tracking-tight">
-            Mi <span className="text-[#3D70DD]">Inventario</span>
+            <span className="text-[#3D70DD]">Inventario</span>
           </h1>
           <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
             <div className="h-1.5 w-1.5 rounded-full bg-[#2BB673]"></div>

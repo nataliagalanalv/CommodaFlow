@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Usamos el tipo exacto que definimos en la arquitectura
 export type HardwareStatus = 'available' | 'rented' | 'maintenance';
 
 interface StatusBadgeProps {
@@ -8,17 +7,37 @@ interface StatusBadgeProps {
 }
 
 const statusConfig = {
-  available: { label: 'Disponible', color: 'bg-green-100 text-green-800 border-green-200' },
-  rented: { label: 'Alquilado', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  maintenance: { label: 'Mantenimiento', color: 'bg-red-100 text-red-800 border-red-200' },
+  available: { 
+    label: '● Disponible', 
+    className: 'bg-[#E9F8F1] text-[#2BB673] border-[#2BB673]/20' 
+  },
+  rented: { 
+    label: '○ Alquilado', 
+    className: 'bg-[#F0F4FF] text-[#3D70DD] border-[#3D70DD]/20' 
+  },
+  maintenance: { 
+    label: '⚠ Mantenimiento', 
+    className: 'bg-red-50 text-red-600 border-red-100' 
+  },
 };
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const { label, color } = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.maintenance;
   
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${color}`}>
-      {label}
+    <span className={`
+      px-3 py-1 
+      rounded-full 
+      text-[10px] 
+      font-black 
+      uppercase 
+      tracking-widest 
+      border 
+      shadow-sm
+      transition-all
+      ${config.className}
+    `}>
+      {config.label}
     </span>
   );
 };

@@ -7,9 +7,3 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
 }
-
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-}

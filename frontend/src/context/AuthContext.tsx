@@ -6,6 +6,7 @@ interface AuthContextType {
   login: (userData: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading?: boolean;
 }
 
 // Solo exportamos el objeto Context

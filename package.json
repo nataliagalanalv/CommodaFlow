@@ -6,6 +6,12 @@
     "server"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces" 
+    "dev": "npm run dev --workspaces"
+  },
+  "dependencies": {
+    "mongoose": "^9.6.1"
+  },
+  "devDependencies": {
+    "@types/mongoose": "^5.11.96"
   }
 }

@@ -9,11 +9,9 @@ export const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate(); 
 
- // 1. Estado para los inputs
   const [formData, setFormData] = useState({ email: '', password: ''});
-
-  // 2. Estado para errores de validación
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [isLoading, setIsLoading] = useState(false);  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -25,7 +23,6 @@ export const LoginPage = () => {
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Por ahora, como no hay backend de usuarios, damos feedback visual
     toast.info('Función de recuperación: Se implementará con el módulo de usuarios.');
   };
 
@@ -36,7 +33,7 @@ export const LoginPage = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validate();
 
@@ -46,16 +43,34 @@ export const LoginPage = () => {
       return;
     }
 
-    login({
-      id: '1',
-      name: 'Natalia',
-      email: formData.email,
-      role: 'admin',
-      avatarUrl: 'https://ui-avatars.com/api/?name=Natalia'
-    });
-    
-    toast.success('¡Bienvenida de nuevo!');
-    navigate('/');
+    setIsLoading(true); 
+
+    try {
+      // 1. Llamada real a tu servidor
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al acceder');
+      }
+
+      login(data.user); 
+      
+      toast.success(`¡Bienvenido/a de nuevo, ${data.user.name}!`);
+      navigate('/');
+
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error inesperado';
+          toast.error(errorMessage);
+          console.error('Login error:', err);
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -125,10 +140,11 @@ export const LoginPage = () => {
 
           {/* Botón Acceder */}
           <button
-            type="submit"
-            className="w-full py-4 bg-[#3D70DD] text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-200 hover:bg-[#2F5FC7] transition-all active:scale-[0.98] mt-4"
-          >
-            Acceder
+              type="submit"
+              disabled={isLoading}
+              className="..."
+            >
+            {isLoading ? 'Verificando...' : 'Acceder'}
           </button>
         </form>
 

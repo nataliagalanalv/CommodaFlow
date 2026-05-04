@@ -1,4 +1,5 @@
-import type { Hardware, Rental } from './types'; // Importamos desde el nuevo archivo
+import type { Hardware } from '../types/hardware.types'; 
+import type { Rental } from '../types/rental.types';
 
 const BASE_URL = 'http://localhost:3001/api';
 

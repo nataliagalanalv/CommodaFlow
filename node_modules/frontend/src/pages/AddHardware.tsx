@@ -26,14 +26,36 @@ export const AddHardware = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Aquí irá la llamada al backend más adelante
-    console.log('Enviando datos:', formData);
-    
-    // Simulación de éxito
-    setTimeout(() => {
+    const hardwareToSave = {
+      model: formData.model,
+      specs: formData.specs,
+      category: formData.category,
+      dailyRate: Number(formData.dailyRate), 
+      status: 'available'
+    };
+
+    try {
+      const response = await fetch('http://localhost:3001/api/hardware', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(hardwareToSave),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar en el servidor');
+      }
+
+      console.log('✅ Hardware guardado con éxito en MongoDB Atlas');
+      navigate('/'); // Ahora sí, volvemos al inventario con datos reales
+      
+    } catch (error) {
+      console.error('❌ Error:', error);
+      alert('No se pudo guardar el equipo. Revisa la consola.');
+    } finally {
       setLoading(false);
-      navigate('/'); // Volver al inventario tras añadir
-    }, 1500);
+    }
   };
 
   return (

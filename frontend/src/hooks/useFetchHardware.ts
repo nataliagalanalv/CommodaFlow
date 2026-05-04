@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client';
-import type { Hardware } from '../api/types';
+import type { Hardware } from '../types/hardware.types';
 
 export function useFetchHardware() {
   const [data, setData] = useState<Hardware[]>([]);

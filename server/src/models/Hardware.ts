@@ -1,15 +1,20 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export type HardwareStatus = 'available' | 'rented' | 'maintenance';
 
-// 1. Definimos la interfaz pura (sin extender Document para evitar conflictos con 'model')
 export interface IHardware {
   model: string;
   specs: string;
+  category: 'laptop' | 'tablet' | 'peripheral';
   dailyRate: number;
   status: HardwareStatus;
   createdAt: Date;
 }
+
+interface HardwareDocument extends IHardware {
+  _id: Types.ObjectId; // MongoDB siempre tiene _id, pero no lo exponemos como 'id' aquí  
+}
+
 
 const hardwareSchema = new Schema<IHardware>({
   model: { 
@@ -19,6 +24,11 @@ const hardwareSchema = new Schema<IHardware>({
   },
   specs: { 
     type: String, 
+    required: true 
+  },
+  category: { 
+    type: String, 
+    enum: ['laptop', 'tablet', 'peripheral'], 
     required: true 
   },
   dailyRate: { 
@@ -40,10 +50,14 @@ const hardwareSchema = new Schema<IHardware>({
   toJSON: {
     virtuals: true,
     versionKey: false,
-    transform: (_doc, ret: any) => {
-      ret.id = ret._id; 
-      delete ret._id;   
-    }
+    // 💡 Aquí está la magia: tipamos 'ret' correctamente
+    transform: (_doc, ret: Partial<HardwareDocument> & { id?: string }) => {
+      if (ret._id) {
+        ret.id = ret._id.toString();
+        delete ret._id;
+      }
+      return ret;
+      }
   }
 });
 

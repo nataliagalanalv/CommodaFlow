@@ -35,7 +35,7 @@ export const AddHardware = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:3001/api/hardware', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/hardware`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

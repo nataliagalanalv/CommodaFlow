@@ -9,7 +9,7 @@ import { requestLogger } from './middlewares/logger.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const MONGO_URI = 'mongodb://DB_admin:zRAQ.!FpV9ktBWC@ac-d4yso1s-shard-00-00.08ospra.mongodb.net:27017,ac-d4yso1s-shard-00-01.08ospra.mongodb.net:27017,ac-d4yso1s-shard-00-02.08ospra.mongodb.net:27017/?ssl=true&replicaSet=atlas-yty30x-shard-0&authSource=admin&appName=Cluster0';
 
 app.use(requestLogger);

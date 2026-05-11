@@ -21,7 +21,7 @@ model Hardware {
   id          String         @id @default(uuid())
   model       String
   specs       String
-  category    Category
+  category    Category      
   dailyRate   Float
   status      HardwareStatus @default(AVAILABLE)
   rentals     Rental[]

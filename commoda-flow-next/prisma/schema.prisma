@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  rentals   Rental[]
+  createdAt DateTime @default(now())
+}
+
+model Hardware {
+  id          String         @id @default(uuid())
+  model       String
+  specs       String
+  category    Category
+  dailyRate   Float
+  status      HardwareStatus @default(AVAILABLE)
+  rentals     Rental[]
+  createdAt   DateTime       @default(now())
+}
+
+model Rental {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  hardware    Hardware @relation(fields: [hardwareId], references: [id])
+  hardwareId  String
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  totalPrice  Float?
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Category {
+  LAPTOP
+  TABLET
+  PERIPHERAL
+}
+
+enum HardwareStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+}

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import type { Hardware } from '../types/hardware'; 
 import { StatusBadge } from '../components/StatusBadge'; 
 import { RentalModal } from '../components/RentalModal'; 
+
 const iconMap: Record<string, string> = {
   laptop: '/assets/Laptop_icon.png',
   tablet: '/assets/Tablet_icon.png',
@@ -17,8 +18,10 @@ interface HardwareCardProps {
 }
 
 export const HardwareCard = ({ item, onRentalSuccess }: HardwareCardProps) => {
-  const selectedIcon = iconMap[item.category] || '/assets/Peripheral_icon.png';
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const categoryKey = item.category?.toLowerCase() || 'peripheral';
+  const selectedIcon = iconMap[categoryKey] || '/assets/Peripheral_icon.png';
   
   // En Prisma el estado suele venir como string, asegúrate de que coincida con tu DB
   const isAvailable = item.status === 'available';

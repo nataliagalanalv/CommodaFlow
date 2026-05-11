@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Importamos el router de Next
+import { AdminGuard } from '../../components/auth/AdminGuard'; // Aseguramos que solo admins accedan
 import type { HardwareCategory } from '../../types/hardware';
 
 const CATEGORIES = [
@@ -59,6 +60,7 @@ export default function AddHardwarePage() {
   };
 
   return (
+    <AdminGuard>
     <div className="max-w-2xl mx-auto px-6 py-12">
       <header className="mb-10 text-center">
         <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
@@ -144,5 +146,6 @@ export default function AddHardwarePage() {
         </div>
       </form>
     </div>
+    </AdminGuard>
   );
 }

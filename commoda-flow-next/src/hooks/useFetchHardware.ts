@@ -1,55 +1,56 @@
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
-import { api } from '../api/client';
-import type { Hardware } from '../types/hardware.types';
+import type { Hardware } from '../types/hardware';
 
 export function useFetchHardware() {
   const [data, setData] = useState<Hardware[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Función para recarga manual (disparada por eventos, no por el efecto)
-  const refetch = useCallback(async () => {
-    setLoading(true);
+  const loadData = useCallback(async (isInitial = false) => {
+    // Solo activamos el loading si no es la carga inicial (donde ya es true por defecto)
+    // o si es un refetch manual
+    if (!isInitial) setLoading(true);
+    
     try {
-      const inventory = await api.getHardware();
+      const response = await fetch('/api/hardware');
+      if (!response.ok) throw new Error('No se pudo obtener el inventario');
+
+      const inventory = await response.json();
       setData(inventory);
       setError(null);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al recargar');
+      setError(err instanceof Error ? err.message : 'Error de conexión');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 2. Efecto de carga inicial
+  // 1. Efecto de carga inicial - Versión corregida
   useEffect(() => {
-    let isMounted = true; // Control de limpieza
+    let active = true;
 
-    // Definimos la carga interna para no disparar el linter
-    async function loadData() {
-      try {
-        const inventory = await api.getHardware();
-        if (isMounted) {
-          setData(inventory);
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Error de conexión');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+    const fetchData = async () => {
+      // Llamamos a la lógica pero solo si el efecto sigue "activo"
+      if (active) {
+        await loadData(true);
       }
-    }
-
-    loadData();
-
-    return () => {
-      isMounted = false;
     };
-  }, []); // El array vacío asegura que solo corra una vez al montar
+
+    fetchData();
+
+    // Limpieza: si el usuario navega a otra página antes de que termine,
+    // evitamos actualizar el estado de un componente que ya no existe.
+    return () => {
+      active = false;
+    };
+  }, [loadData]); // loadData es estable gracias a useCallback
+
+  // 2. Función para recarga manual
+  const refetch = useCallback(() => {
+    return loadData();
+  }, [loadData]);
 
   return { data, loading, error, refetch };
 }

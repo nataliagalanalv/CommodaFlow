@@ -6,8 +6,8 @@ interface AuthContextType {
   login: (userData: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
-  isLoading?: boolean;
-}
+  isLoading: boolean; 
+  }
 
 // Solo exportamos el objeto Context
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

@@ -1,39 +1,33 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../lib/prisma';
-import { Category } from '@prisma/client';
+import { HardwareService } from '../../../services/hardware.service';
+import { hardwareSchema } from '../../../schemas/hardware.schemas';
 
 export async function GET() {
   try {
-    const allHardware = await prisma.hardware.findMany();
+    // La ruta solo pide los datos al servicio
+    const allHardware = await HardwareService.getAll();
     return NextResponse.json(allHardware);
   } catch (error) {
-    console.error("Error al obtener hardware:", error);
     return NextResponse.json({ error: "Error al obtener hardware" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  const body = await request.json()
-
-  if (!Object.values(Category).includes(body.category)) {
-    return NextResponse.json(
-      { error: `Categoría no válida. Valores permitidos: ${Object.values(Category).join(', ')}` },
-      { status: 400 }
-    )
-  }
-
   try {
-    const newEquipment = await prisma.hardware.create({
-      data: {
-        model: body.model,
-        category: body.category,
-        specs: body.specs,
-        dailyRate: body.dailyRate,
-      }
-    })
-    return NextResponse.json(newEquipment, { status: 201 })
+    const body = await request.json();
+
+    // Zod ahora validará que venga 'dailyRate' y no 'price'
+    const validatedData = hardwareSchema.parse(body);
+
+    // El servicio ahora recibirá exactamente lo que Prisma espera
+    const newEquipment = await HardwareService.create(validatedData);
+    
+    return NextResponse.json(newEquipment, { status: 201 });
   } catch (error) {
-    console.error("Error al crear equipo:", error);
-    return NextResponse.json({ error: 'Error al crear equipo' }, { status: 500 })
+    console.error("Error en POST hardware:", error);
+    return NextResponse.json(
+      { error: 'Datos de hardware inválidos. Asegúrate de enviar dailyRate y categorías correctas.' }, 
+      { status: 400 }
+    );
   }
 }

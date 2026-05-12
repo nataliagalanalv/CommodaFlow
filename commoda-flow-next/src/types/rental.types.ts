@@ -1,5 +1,5 @@
 import type { User } from './user.types';
-import type { Hardware } from './hardware.types';
+import type { Hardware } from './hardware.js';
 
 export type RentalStatus = 'active' | 'returned' | 'overdue' | 'pending';
 

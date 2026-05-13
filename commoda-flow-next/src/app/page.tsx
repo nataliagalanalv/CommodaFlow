@@ -21,18 +21,20 @@ export default function HomePage() {
 
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-[#F5F8FF] flex items-center justify-center p-6">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-5xl font-black text-[#1A263C] tracking-tighter">
-              Commoda<span className="text-[#3D70DD]">Flow</span>
-            </h1>
-            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
-              Gestión de Hardware Corporativo
-            </p>
+      <main className="min-h-screen bg-[#F5F8FF] flex flex-col items-center justify-center p-6">
+        {/* Logo Centralizado y Amigable */}
+        <div className="flex flex-col items-center mb-8 text-center">
+          <div className="w-20 h-20 bg-[#3D70DD] rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl shadow-blue-200 rotate-3">
+             <span className="text-white text-4xl">📚</span> 
           </div>
-          
-          <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-blue-900/5">
+          <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
+            Commoda<span className="text-[#3D70DD]">Flow</span>
+          </h1>
+          <p className="text-slate-500 font-medium mt-2">Gestión de equipos para tu centro</p>
+        </div>
+        
+        <div className="max-w-md w-full">
+          <div className="bg-white p-10 rounded-[3.5rem] shadow-2xl shadow-blue-900/5 border border-white">
             <LoginForm />
           </div>
         </div>

@@ -44,9 +44,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        <section className="mt-0">
+        <section className="mt-2">
           <header className="px-2">
-            <h3 className="text-lg font-black text-[#1A263C] uppercase tracking-[0.2em]">
+            <h3 className="text-lg font-gray-700 text-[#1A263C] uppercase tracking-[0.2em]">
               Explorar Catálogo
             </h3>
           </header>

@@ -15,13 +15,13 @@ export const Navbar = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-100">
       <div className="max-w-[1600px] mx-auto px-8 h-20 flex items-center justify-between">
         
-        {/* SECCIÓN IZQUIERDA: LOGO E IDENTIDAD */}
         <div className="flex items-center gap-10">
-          <Link href="/inventory" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 flex items-center justify-center transition-transform group-hover:scale-105">
+          {/* Logo sin hover scale */}
+          <Link href="/inventory" className="flex items-center gap-3">
+            <div className="w-11 h-11 flex items-center justify-center">
               <Image 
                 src={LOGO_ICON} 
                 alt="CommodaFlow Logo" 

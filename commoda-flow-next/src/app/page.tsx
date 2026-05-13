@@ -34,36 +34,33 @@ export default function HomePage() {
 }
 
   return (
-  <main className="min-h-screen bg-white">
-    <Navbar /> {/* Añadimos la nueva Navbar aquí */}
+    <main className="min-h-screen bg-white">
+      <Navbar /> 
 
-    {/* Aumentamos el max-width a 1600px o 'full' para dar más aire */}
-    <div className="max-w-[1600px] mx-auto px-8 pt-32 pb-20 space-y-12">
-      
-      {/* Sección Perfil y SearchBar - Más ancha */}
-      <header className="flex flex-col lg:flex-row justify-between items-end gap-6">
-        <div className="w-full lg:w-auto">
-          <UserProfileCard user={user!} />
-        </div>
-        <div className="w-full lg:max-w-xl">
-          <SearchBar onSearch={(val) => setSearchTerm(val)} />
-        </div>
-      </header>
-
-      {/* Contenedor del Catálogo */}
-      <section className="space-y-8">
-        <div className="flex justify-between items-center px-2">
-          <h3 className="text-lg font-black text-[#1A263C] uppercase tracking-[0.2em]">
-            Explorar Catálogo
-          </h3>
+      {/* Bajamos el pt-32 para que el contenido empiece justo debajo de la NavBar */}
+      <div className="max-w-[1600px] mx-auto px-8 pt-32 pb-20 space-y-16">
+        
+        {/* Barra de búsqueda ahora alineada a la derecha o centrada */}
+        <div className="flex justify-end">
+          <div className="w-full lg:max-w-xl">
+            <SearchBar onSearch={setSearchTerm} />
+          </div>
         </div>
 
-        {/* Quitamos el borde dashed y damos un fondo más limpio */}
-        <div className="bg-[#F5F8FF]/40 p-10 rounded-[3.5rem] border border-slate-100">
-          <InventoryList search={searchTerm} />
-        </div>
-      </section>
-    </div>
-  </main>
-);
+        {/* Sección de Inventario */}
+        <section className="space-y-8">
+          <header className="px-2">
+            <h3 className="text-lg font-black text-[#1A263C] uppercase tracking-[0.2em]">
+              Explorar Catálogo
+            </h3>
+          </header>
+
+          {/* El fondo F5F8FF ahora envuelve la lista para darle cohesión */}
+          <div className="bg-[#F5F8FF]/40 p-8 sm:p-12 rounded-[3.5rem] border border-slate-100">
+            <InventoryList search={searchTerm} />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
 }

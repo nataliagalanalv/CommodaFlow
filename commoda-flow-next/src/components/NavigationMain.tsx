@@ -4,11 +4,11 @@ import { useAuth } from '../hooks/useAuth';
 import { UserAvatar } from './UserAvatar';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+
 
 const LOGO_ICON = '/assets/CommodaFlow_logo_onlyicon.png';
 
-export const Navbar = () => {
+export const NavigationMain = () => {
   const { user, logout, isAuthenticated } = useAuth();
 
   // No mostrar Navbar en el login

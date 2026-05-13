@@ -1,7 +1,6 @@
 "use client";
 
 import { useFetchHardware } from '../hooks/useFetchHardware';
-import { Hardware } from '../types/hardware';
 import { HardwareCard } from './HardwareCard';
 
 interface InventoryListProps {

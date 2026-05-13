@@ -2,7 +2,6 @@
 
 import './globals.css'
 import { AuthProvider } from '../context/AuthProvider'
-import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '../hooks/useAuth'
 

@@ -36,24 +36,24 @@ export default function HomePage() {
     <main className="min-h-screen bg-white">
       <Navbar /> 
 
-      <div className="max-w-[1600px] mx-auto px-8 pt-24 pb-12 space-y-8">
+      <div className="max-w-[1600px] mx-auto px-8 pt-20 pb-10 space-y-4">
         
-        <div className="flex justify-end mt-2">
-          <div className="w-full lg:max-w-md"> 
-            <SearchBar onSearch={setSearchTerm} />
-          </div>
+        <div className="flex justify-end">
+        <div className="w-full lg:max-w-md">
+          <SearchBar onSearch={setSearchTerm} />
         </div>
+      </div>
 
-        <section className="space-y-4">
-          <header className="px-2">
-            <h3 className="text-[11px] font-black text-[#1A263C] uppercase tracking-[0.3em] opacity-50">
-              Explorar Catálogo
-            </h3>
-          </header>
+        <section className="mt-0"> 
+        <header className="px-2 mb-2"> 
+          <h3 className="text-[10px] font-black text-[#1A263C] uppercase tracking-[0.3em] opacity-40">
+            Explorar Catálogo
+          </h3>
+        </header>
 
-          <div className="bg-[#F5F8FF]/40 p-6 sm:p-8 rounded-[2.5rem] border border-slate-100">
-            <InventoryList search={searchTerm} />
-          </div>
+          <div className="bg-[#F5F8FF]/40 p-5 sm:p-7 rounded-[2.5rem] border border-slate-100">
+          <InventoryList search={searchTerm} />
+        </div>
         </section>
       </div>
     </main>

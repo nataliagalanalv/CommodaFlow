@@ -5,7 +5,6 @@ import { LoginForm } from '../components/auth/LoginForm';
 import { InventoryList } from '../components/InventoryList';
 import { SearchBar } from '../components/SearchBar';
 import { useState } from 'react';
-import { NavigationMain } from '../components/NavigationMain';
 
 export default function HomePage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -34,7 +33,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <NavigationMain /> 
 
       <div className="max-w-[1600px] mx-auto px-8 pt-20 pb-10 space-y-4">
         

@@ -11,9 +11,6 @@ const LOGO_ICON = '/assets/CommodaFlow_logo_onlyicon.png';
 export const NavigationMain = () => {
   const { user, logout, isAuthenticated } = useAuth();
 
-  // No mostrar Navbar en el login
-  if (!isAuthenticated) return null;
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-100">
       <div className="max-w-[1600px] mx-auto px-8 h-20 flex items-center justify-between">

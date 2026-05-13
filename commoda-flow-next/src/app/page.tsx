@@ -6,6 +6,7 @@ import { InventoryList } from '../components/InventoryList';
 import { UserProfileCard } from '../components/UserProfileCard';
 import { SearchBar } from '../components/SearchBar';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -22,19 +23,25 @@ export default function HomePage() {
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-[#F5F8FF] flex flex-col items-center justify-center p-6">
-        {/* Logo Centralizado y Amigable */}
-        <div className="flex flex-col items-center mb-8 text-center">
-          <div className="w-20 h-20 bg-[#3D70DD] rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl shadow-blue-200 rotate-3">
-             <span className="text-white text-4xl">📚</span> 
+        {/* Logo Centralizado con tu Asset */}
+        <div className="flex flex-col items-center mb-10 text-center">
+          <div className="w-24 h-24 mb-6 transition-transform hover:scale-105">
+            <Image
+              src="/assets/CommodaFlow_logo_onlyicon.png" 
+              alt="CommodaFlow Logo"
+              width={96}
+              height={96}
+              className="object-contain"
+            />
           </div>
           <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
             Commoda<span className="text-[#3D70DD]">Flow</span>
           </h1>
-          <p className="text-slate-500 font-medium mt-2">Gestión de equipos para tu centro</p>
+          <p className="text-slate-500 font-medium mt-2">Gestión de inventario inteligente</p>
         </div>
         
         <div className="max-w-md w-full">
-          <div className="bg-white p-10 rounded-[3.5rem] shadow-2xl shadow-blue-900/5 border border-white">
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-white/50">
             <LoginForm />
           </div>
         </div>

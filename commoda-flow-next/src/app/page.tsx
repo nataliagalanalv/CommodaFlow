@@ -39,21 +39,21 @@ export default function HomePage() {
       <div className="max-w-[1600px] mx-auto px-8 pt-20 pb-10 space-y-4">
         
         <div className="flex justify-end">
-        <div className="w-full lg:max-w-md">
-          <SearchBar onSearch={setSearchTerm} />
+          <div className="w-full lg:max-w-xl">
+            <SearchBar onSearch={setSearchTerm} />
+          </div>
         </div>
-      </div>
 
-        <section className="mt-0"> 
-        <header className="px-2 mb-2"> 
-          <h3 className="text-[10px] font-black text-[#1A263C] uppercase tracking-[0.3em] opacity-40">
-            Explorar Catálogo
-          </h3>
-        </header>
+        <section className="mt-0">
+          <header className="px-2">
+            <h3 className="text-lg font-black text-[#1A263C] uppercase tracking-[0.2em]">
+              Explorar Catálogo
+            </h3>
+          </header>
 
-          <div className="bg-[#F5F8FF]/40 p-5 sm:p-7 rounded-[2.5rem] border border-slate-100">
-          <InventoryList search={searchTerm} />
-        </div>
+          <div className="bg-[#F5F8FF]/40 p-8 sm:p-12 rounded-[3.5rem] border border-slate-100">
+            <InventoryList search={searchTerm} />
+          </div>
         </section>
       </div>
     </main>

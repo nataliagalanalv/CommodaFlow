@@ -6,6 +6,7 @@ import { InventoryList } from '../components/InventoryList';
 import { UserProfileCard } from '../components/UserProfileCard';
 import { SearchBar } from '../components/SearchBar';
 import { useState } from 'react';
+import { Navbar } from '../components/NavBar';
 
 export default function HomePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -33,40 +34,36 @@ export default function HomePage() {
 }
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-6 pt-32 pb-20 space-y-12">
-        
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="w-full md:w-auto">
-            <UserProfileCard user={user!} />
-          </div>
-          <div className="w-full md:max-w-md">
-            {/* Aquí capturamos lo que el usuario escribe */}
-            <SearchBar onSearch={(val) => setSearchTerm(val)} />
-          </div>
-        </header>
+  <main className="min-h-screen bg-white">
+    <Navbar /> {/* Añadimos la nueva Navbar aquí */}
 
-        <section className="space-y-6">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="text-sm font-black text-[#1A263C] uppercase tracking-[0.3em]">
-              Explorar Catálogo
-            </h3>
-            {user?.role === 'admin' && (
-              <button className="bg-[#3D70DD] text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#1A263C] transition-all">
-                + Añadir Equipo
-              </button>
-            )}
-          </div>
+    {/* Aumentamos el max-width a 1600px o 'full' para dar más aire */}
+    <div className="max-w-[1600px] mx-auto px-8 pt-32 pb-20 space-y-12">
+      
+      {/* Sección Perfil y SearchBar - Más ancha */}
+      <header className="flex flex-col lg:flex-row justify-between items-end gap-6">
+        <div className="w-full lg:w-auto">
+          <UserProfileCard user={user!} />
+        </div>
+        <div className="w-full lg:max-w-xl">
+          <SearchBar onSearch={(val) => setSearchTerm(val)} />
+        </div>
+      </header>
 
-          <div className="bg-[#F5F8FF]/50 p-8 rounded-[3rem] border-2 border-dashed border-slate-100">
-            {/* CORRECCIÓN AQUÍ: 
-                Le pasamos 'searchTerm' al componente InventoryList.
-                Esto quita el error de "variable not used" y activa el filtro.
-            */}
-            <InventoryList search={searchTerm} />
-          </div>
-        </section>
-      </div>
-    </main>
-  );
+      {/* Contenedor del Catálogo */}
+      <section className="space-y-8">
+        <div className="flex justify-between items-center px-2">
+          <h3 className="text-lg font-black text-[#1A263C] uppercase tracking-[0.2em]">
+            Explorar Catálogo
+          </h3>
+        </div>
+
+        {/* Quitamos el borde dashed y damos un fondo más limpio */}
+        <div className="bg-[#F5F8FF]/40 p-10 rounded-[3.5rem] border border-slate-100">
+          <InventoryList search={searchTerm} />
+        </div>
+      </section>
+    </div>
+  </main>
+);
 }

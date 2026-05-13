@@ -1,11 +1,11 @@
 "use client";
 
 import { useFetchHardware } from '../hooks/useFetchHardware';
+import { Hardware } from '../types/hardware';
 import { HardwareCard } from './HardwareCard';
 
-
 interface InventoryListProps {
-  search?: string;
+  search: string;
 }
 
 export function InventoryList({ search = '' }: InventoryListProps) {
@@ -35,8 +35,8 @@ export function InventoryList({ search = '' }: InventoryListProps) {
   // 4. Estado: ERROR
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto bg-red-50 border-2 border-red-100 p-10 rounded-[2.5rem] text-center">
-        <span className="text-4xl mb-4 block">📡</span>
+      <div className="max-w-2xl mx-auto bg-red-50 border-2 border-red-100 p-10 rounded-[3rem] text-center my-10">
+        <span className="text-5xl mb-4 block">📡</span>
         <h3 className="text-[#1A263C] text-xl font-black mb-2">Error de Conexión</h3>
         <p className="text-red-600 font-medium mb-6">{error}</p>
         <button 
@@ -51,21 +51,23 @@ export function InventoryList({ search = '' }: InventoryListProps) {
 
   // 5. Estado: ÉXITO
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
+      {/* ENCABEZADO MODERNO */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 px-2">
         <div>
-          <h2 className="text-3xl font-black text-[#1A263C] tracking-tight">
+          <h2 className="text-4xl font-black text-[#1A263C] tracking-tight">
             Equipos <span className="text-[#3D70DD]">Disponibles</span>
           </h2>
-          <p className="text-slate-400 font-medium">
+          <p className="text-slate-400 font-medium mt-1">
             {search 
               ? `Resultados para: "${search}"` 
               : "Explora nuestro catálogo actualizado en tiempo real."}
           </p>
         </div>
+        
         <button 
           onClick={refetch} 
-          className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#3D70DD] hover:text-[#1A263C] transition-colors"
+          className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#3D70DD] hover:text-[#1A263C] transition-all bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-100 active:scale-95"
         >
           <svg 
             className="w-4 h-4 group-active:rotate-180 transition-transform duration-500" 
@@ -79,17 +81,17 @@ export function InventoryList({ search = '' }: InventoryListProps) {
         </button>
       </header>
 
-      {/* 6. Renderizado condicional basado en el FILTRO */}
+      {/* RENDERIZADO CONDICIONAL DEL GRID (4 COLUMNAS) */}
       {filteredData.length === 0 ? (
-        <div className="bg-[#F5F8FF] border-2 border-dashed border-blue-100 rounded-[3rem] p-20 text-center">
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">
+        <div className="bg-[#F5F8FF]/50 border-2 border-dashed border-blue-100 rounded-[3.5rem] p-24 text-center">
+          <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">
             {search 
               ? "No hay coincidencias para tu búsqueda" 
               : "No se han encontrado equipos activos"}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredData.map((item) => (
             <HardwareCard 
               key={item.id} 

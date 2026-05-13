@@ -9,8 +9,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Definimos una función interna para manejar la carga de forma asíncrona
-    // Esto evita el "cascading render" síncrono que molesta al linter
     const initializeAuth = () => {
       const savedUser = localStorage.getItem('commoda_user');
       

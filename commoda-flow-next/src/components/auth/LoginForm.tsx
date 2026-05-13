@@ -24,18 +24,23 @@ export const LoginForm: React.FC = () => {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.message || 'Error al entrar');
-
-    
-      login(data.user); 
-
-      toast.success('¡Bienvenido de nuevo!');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error de credenciales');
-    } finally {
-      setIsSubmitting(false);
+      if (response.ok) {
+      toast.success(data.message);
+      login(data.user);
+    } else {
+      throw new Error(data.message || 'Error al autenticar');
     }
-  };
+
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      toast.error(error.message);
+    } else {
+      toast.error('Ocurrió un error inesperado');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

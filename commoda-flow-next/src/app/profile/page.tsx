@@ -22,16 +22,16 @@ export default function ProfilePage() {
         <p className="text-slate-500 font-medium mt-2">Actualiza tu información personal y seguridad.</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         {/* Lado Izquierdo: Card de Vista Previa */}
-        <div className="lg:col-span-2">
-          <UserProfileCard user={MOCK_USER} />
+        <div className="lg:col-span-5 w-full">
+            <UserProfileCard user={MOCK_USER} />
         </div>
 
         {/* Lado Derecho: Formulario de Edición */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="p-8 bg-white rounded-[2.5rem] border border-slate-50 shadow-xl shadow-blue-100/20 space-y-6">
-            <h3 className="text-xl font-black text-[#1A263C]">Editar Datos</h3>
+        <div className="lg:col-span-7">
+          <div className="p-10 bg-white rounded-[2.5rem] border border-slate-50 shadow-xl shadow-blue-100/20 space-y-8">
+            <h3 className="text-2xl font-black text-[#1A263C]">Editar Datos</h3>
             
             <div className="space-y-4">
               <div>

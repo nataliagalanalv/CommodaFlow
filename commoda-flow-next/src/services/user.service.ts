@@ -28,5 +28,21 @@ export const UserService = {
 
   async getById(id: string): Promise<User | null> {
     return await prisma.user.findUnique({ where: { id } });
+  },
+
+  async update (id: string, data: Partial<Prisma.UserUpdateInput>): Promise<Omit<User, 'password'>> {
+    const updateData = { ...data };
+
+    if (updateData.password && typeof updateData.password === 'string') {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 };

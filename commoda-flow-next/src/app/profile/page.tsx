@@ -1,20 +1,54 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { UserProfileCard } from '../../components/UserProfileCard';
+import { useAuth } from '../../hooks/useAuth'; // Usamos tu hook real
 import type { User } from '../../types/user.types';
 
-const MOCK_USER: User = {
-  id: 'u1',
-  name: 'Natalia Corner',
-  email: 'natalia@cornerestudios.com',
-  role: 'admin',
-  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Natalia'
-};
-
 export default function ProfilePage() {
+  const { user, updateUser } = useAuth(); 
+
+  const [name, setName] = useState(user?.name || 'Natalia Corner');
+  const [password, setPassword] = useState('');
+  const [avatarSeed, setAvatarSeed] = useState(user?.avatarUrl?.split('=')[1] || 'Natalia');
+  const [loading, setLoading] = useState(false);
+
+  
+  const currentAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          avatarUrl: currentAvatarUrl,
+          ...(password && { password }) // Solo envía la password si hay texto
+        }),
+      });
+
+      if (!response.ok) throw new Error('Error al actualizar');
+
+      const updatedUser = await response.json();
+      updateUser(updatedUser);
+      alert("¡Cambios guardados con éxito!");
+      setPassword(''); 
+
+    } catch (error) {
+      console.error(error);
+      alert("Error al conectar con el servidor.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12 space-y-10">
+    <div className="max-w-7xl mx-auto px-6 py-12 space-y-10">
       <header className="border-b border-slate-100 pb-8 text-center lg:text-left">
         <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
           Configuración de <span className="text-[#3D70DD]">Perfil</span>
@@ -23,37 +57,65 @@ export default function ProfilePage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* Lado Izquierdo: Card de Vista Previa */}
+        
+        {/* Lado Izquierdo: Card de Vista Previa (Reactiva) */}
         <div className="lg:col-span-5 w-full">
-            <UserProfileCard user={MOCK_USER} />
+          <UserProfileCard 
+            user={{
+              ...user!,
+              name: name,
+              avatarUrl: currentAvatarUrl
+            }} 
+          />
         </div>
 
         {/* Lado Derecho: Formulario de Edición */}
         <div className="lg:col-span-7">
-          <div className="p-10 bg-white rounded-[2.5rem] border border-slate-50 shadow-xl shadow-blue-100/20 space-y-8">
+          <form onSubmit={handleSubmit} className="p-10 bg-white rounded-[2.5rem] border border-slate-50 shadow-xl shadow-blue-100/20 space-y-8">
             <h3 className="text-2xl font-black text-[#1A263C]">Editar Datos</h3>
             
             <div className="space-y-4">
               <div>
                 <label className="text-[10px] font-black text-[#3D70DD] uppercase tracking-widest ml-1">Nombre Completo</label>
-                <input type="text" defaultValue={MOCK_USER.name} className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-medium text-[#1A263C]" />
+                <input 
+                  type="text" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-medium text-[#1A263C]" 
+                />
               </div>
 
               <div>
                 <label className="text-[10px] font-black text-[#3D70DD] uppercase tracking-widest ml-1">Nueva Contraseña</label>
-                <input type="password" placeholder="••••••••" className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                <input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all" 
+                />
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-[#3D70DD] uppercase tracking-widest ml-1">Seed de Avatar (DiceBear)</label>
-                <input type="text" placeholder="Ej: Natalia" className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all" />
+                <label className="text-[10px] font-black text-[#3D70DD] uppercase tracking-widest ml-1">Seed de Avatar</label>
+                <input 
+                  type="text" 
+                  placeholder="Ej: Natalia" 
+                  value={avatarSeed}
+                  onChange={(e) => setAvatarSeed(e.target.value)}
+                  className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-medium text-[#1A263C]" 
+                />
               </div>
             </div>
 
-            <button className="w-full py-4 bg-[#3D70DD] hover:bg-[#1A263C] text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-200 uppercase text-xs tracking-widest">
-              Guardar Cambios
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-[#3D70DD] hover:bg-[#1A263C] text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-200 uppercase text-xs tracking-widest disabled:opacity-50"
+            >
+              {loading ? "Guardando..." : "Guardar Cambios"}
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>

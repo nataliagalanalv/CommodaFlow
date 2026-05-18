@@ -14,6 +14,7 @@ model User {
   password  String
   role      Role     @default(USER)
   createdAt DateTime @default(now())
+  avatarUrl String? 
   rentals   Rental[]
 }
 

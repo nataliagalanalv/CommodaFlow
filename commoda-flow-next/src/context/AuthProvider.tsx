@@ -7,6 +7,11 @@ import type { User } from '../types/user.types';
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const updateUser = (userData: User | null) => {
+    setUser (userData);
+  };
+
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     const initializeAuth = () => {
@@ -22,8 +27,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           localStorage.removeItem('commoda_user');
         }
       }
-      
-      // Finalmente quitamos el estado de carga
       setIsLoading(false);
     };
 
@@ -40,16 +43,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('commoda_user');
   };
 
-  const value = {
-    user,
-    login,
-    logout,
-    isAuthenticated: !!user,
-    isLoading 
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ 
+      user, 
+      updateUser, 
+      login, 
+      logout, 
+      isAuthenticated, 
+      isLoading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

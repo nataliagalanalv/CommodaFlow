@@ -8,7 +8,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-[#F8FAFC] min-h-screen">
         <AuthProvider>
           <NavWrapper /> 
-          <main className="pt-32 px-4 md:px-8 max-w-7xl mx-auto">
+          <main className="pt-32 pb-12"> {/* pt-32 da aire suficiente para tu Nav de h-20 */}
             {children}
           </main>
         </AuthProvider>

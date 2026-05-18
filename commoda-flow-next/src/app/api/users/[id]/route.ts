@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { UserService } from '../../../../services/user.service';
 import { Prisma } from '@prisma/client';
 
@@ -10,11 +10,11 @@ interface UpdateUserRequest {
 }
 
 export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> } 
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     const body: UpdateUserRequest = await request.json();
 
@@ -37,7 +37,7 @@ export async function PATCH(
     return NextResponse.json(updatedUser, { status: 200 });
 
   } catch (error: unknown) {
-    // 5. Manejo de errores sin 'any'
+    
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     
     console.error("Error en API update:", errorMessage);

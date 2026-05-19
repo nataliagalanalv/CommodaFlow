@@ -1,13 +1,14 @@
 "use client";
 
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { LoginForm } from '../components/auth/LoginForm';
 import { InventoryList } from '../components/InventoryList';
 import { SearchBar } from '../components/SearchBar';
 import { useState } from 'react';
 
 export default function HomePage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
+  const isAuthenticated = !!user;
   const [searchTerm, setSearchTerm] = useState('');
 
   if (isLoading) {

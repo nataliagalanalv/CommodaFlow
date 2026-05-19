@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { RentalTable } from '../../components/RentalTable';
 import { useFetchRentals } from '../../hooks/useFetchRentals'; 
-import { useAuth } from '@/src/hooks/useAuth';
+import { useAuth } from '../../context/AuthContext'; 
 
 export default function RecordPage() {
   const { user } = useAuth(); 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { UserProfileCard } from '../../components/UserProfileCard';
-import { useAuth } from '../../hooks/useAuth'; // Usamos tu hook real
+import { useAuth } from '../../context/AuthContext';
 import type { User } from '../../types/user.types';
 
 export default function ProfilePage() {

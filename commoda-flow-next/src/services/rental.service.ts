@@ -30,7 +30,8 @@ export const RentalService = {
     return await prisma.rental.findMany({
       where: { userId },
       include: {
-        hardware: true, // Incluimos los datos del equipo para ver qué alquiló
+        hardware: true, 
+        user: true,
       },
       orderBy: { startDate: 'desc' },
     });

@@ -2,17 +2,11 @@
 
 import { useAuth } from '../../hooks/useAuth';
 import { useState, useEffect } from 'react';
-
-// 1. Interfaz para el Rental
-interface UserRental {
-  id: string;
-  hardwareName: string;
-  date: string;
-  status: 'active' | 'returned';
-}
+import { RentalTable } from '../../components/RentalTable'; 
+import type { Rental } from '../../types/rental.types';
 
 const useUserRentals = (userId?: string) => {
-  const [rentals, setRentals] = useState<UserRental[]>([]);
+  const [rentals, setRentals] = useState<Rental[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,17 +15,12 @@ const useUserRentals = (userId?: string) => {
 
       try {
         setLoading(true);
-        console.log(`Cargando alquileres para el usuario: ${userId}`);
-
-        // Simulamos un pequeño retraso de red (0.5s) para que sea "asíncrono"
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        const mockData: UserRental[] = [
-          { id: '1', hardwareName: 'MacBook Pro M2', date: '2023-10-25', status: 'active' },
-          { id: '2', hardwareName: 'Logitech MX Master 3', date: '2023-09-10', status: 'returned' },
-        ];
-
-        setRentals(mockData);
+        const response = await fetch(`/api/rentals?userId=${userId}`);
+        
+        if (!response.ok) throw new Error("Error al obtener los alquileres");
+        
+        const data = await response.json();
+        setRentals(data);
       } catch (error) {
         console.error("Error cargando alquileres:", error);
       } finally {
@@ -57,6 +46,11 @@ export default function UserDashboard() {
     );
   }
 
+  // Separamos los alquileres activos de los devueltos/historial
+  // Ajusta "active" o "returned" según cómo los llames en tu base de datos
+  const activeRentals = rentals.filter(r => r.status === 'active' || r.status === 'overdue');
+  const historyRentals = rentals.filter(r => r.status === 'returned' || r.status === 'completed');
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-12">
       <header className="mb-12">
@@ -74,14 +68,17 @@ export default function UserDashboard() {
         </h2>
         
         <div className="grid gap-4">
-          {rentals.filter(r => r.status === 'active').length > 0 ? (
-            rentals.filter(r => r.status === 'active').map((rental) => (
+          {activeRentals.length > 0 ? (
+            activeRentals.map((rental) => (
               <div key={rental.id} className="bg-white p-6 rounded-[2rem] border border-blue-50 shadow-sm flex justify-between items-center hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-[#F5F8FF] rounded-2xl flex items-center justify-center text-xl">💻</div>
                   <div>
-                    <h3 className="font-bold text-[#1A263C]">{rental.hardwareName}</h3>
-                    <p className="text-xs text-slate-400">Alquilado el {rental.date}</p>
+                    {/* Usamos hardwareDetails porque es lo que viene de Prisma (con el include) */}
+                    <h3 className="font-bold text-[#1A263C]">{rental.hardwareDetails?.model || "Equipo"}</h3>
+                    <p className="text-xs text-slate-400">
+                      Vence el: {new Date(rental.endDate).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
                 <button className="bg-[#1A263C] text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-black transition-colors">
@@ -95,33 +92,11 @@ export default function UserDashboard() {
         </div>
       </section>
 
-      {/* SECCIÓN: HISTORIAL */}
+      {/* SECCIÓN: HISTORIAL CON TU RENTALTABLE */}
       <section>
         <h2 className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-6">Historial de alquileres</h2>
-        <div className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50/50">
-                <tr>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400">Equipo</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400">Fecha</th>
-                  <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 text-right">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {rentals.filter(r => r.status === 'returned').map((rental) => (
-                  <tr key={rental.id} className="hover:bg-slate-50/30 transition-colors">
-                    <td className="px-6 py-4 font-bold text-[#1A263C] text-sm">{rental.hardwareName}</td>
-                    <td className="px-6 py-4 text-slate-500 text-sm">{rental.date}</td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="text-[10px] font-black uppercase px-3 py-1 bg-slate-100 text-slate-500 rounded-full">Devuelto</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* Aquí insertamos tu tabla y le pasamos solo los alquileres pasados */}
+        <RentalTable rentals={historyRentals} />
       </section>
     </div>
   );

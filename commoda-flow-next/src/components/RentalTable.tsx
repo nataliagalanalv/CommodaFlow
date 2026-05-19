@@ -31,12 +31,12 @@ export const RentalTable: React.FC<RentalTableProps> = ({ rentals }) => {
               rentals.map((rental) => (
                 <tr key={rental.id} className="hover:bg-[#F5F8FF]/50 transition-colors group">
                   <td className="px-8 py-5 text-sm font-black text-[#1A263C]">
-                    {rental.hardwareDetails?.model || 'Equipo desconocido'}
+                    {rental.hardware?.model || 'Equipo desconocido'}
                   </td>
                   <td className="px-8 py-5 text-sm font-bold text-slate-500">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-blue-200" />
-                      {rental.userDetails?.name || 'Usuario'}
+                      {rental.user?.name || 'Usuario'}
                     </div>
                   </td>
                   <td className="px-8 py-5 text-sm font-bold text-slate-400">

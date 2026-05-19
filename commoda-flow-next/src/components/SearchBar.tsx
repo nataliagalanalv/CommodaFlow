@@ -33,13 +33,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
         className="w-full pl-14 pr-6 py-4 bg-[#F5F8FF] border-2 border-transparent rounded-[2rem] text-[#1A263C] font-bold outline-none transition-all placeholder:text-slate-300 placeholder:font-medium focus:bg-white focus:border-[#3D70DD]/20 focus:shadow-xl focus:shadow-blue-900/5"
         onChange={(e) => onSearch(e.target.value)}
       />
-
-      {/* Indicador visual sutil a la derecha (opcional) */}
-      <div className="absolute right-5 top-1/2 -translate-y-1/2">
-        <span className="hidden sm:block text-[10px] font-black text-slate-300 uppercase tracking-widest border border-slate-100 px-2 py-1 rounded-md">
-          Hardware
-        </span>
-      </div>
+  
     </div>
   );
 };

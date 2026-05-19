@@ -13,9 +13,16 @@ export interface Rental {
   totalCost: number;
   
   // Opcional: Campos "poblados" para mostrar info sin buscar otra vez
-  hardwareDetails?: Pick<Hardware, 'model' | 'dailyRate'>;
-  userDetails?: Pick<User, 'name' | 'email'>;
-}
+  hardware?: {
+    model: string;
+    dailyRate: number;
+  };
+
+  user?: {
+    name: string;
+    email: string;
+  };
+};
 
 // Para cuando creamos un nuevo alquiler
 export interface CreateRentalDTO {

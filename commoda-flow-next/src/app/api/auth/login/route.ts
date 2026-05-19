@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import { UserService } from '../../../../services/user.service';
 import { ZodError } from 'zod';
 import { registerSchema } from '../../../../schemas/user.schema'; 
+import { cookies } from 'next/headers'; // <--- IMPORTANTE
 import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { email, password } = body;
+    const cookieStore = await cookies(); // Obtenemos el gestor de cookies
 
     // 1. Intentar buscar al usuario
     const user = await UserService.findByEmail(email);
@@ -18,6 +20,15 @@ export async function POST(req: Request) {
       
       if (isPasswordValid) {
         const { password: _, ...userWithoutPassword } = user;
+
+        // --- CREAR COOKIE SESIÓN ---
+        cookieStore.set('token-commoda', user.id, {
+          httpOnly: true, // El navegador no puede leerla vía JS (protege vs XSS)
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 60 * 60 * 24 * 7, // 1 semana de duración
+          path: '/',
+        });
+
         return NextResponse.json({ 
           user: userWithoutPassword, 
           message: "¡Bienvenido de nuevo!" 
@@ -29,7 +40,6 @@ export async function POST(req: Request) {
 
     // CASO B: Registro automático
     try {
-      // Si tu esquema pide 'name', lo generamos del email para evitar el 400
       const userData = {
         email,
         password,
@@ -38,6 +48,14 @@ export async function POST(req: Request) {
 
       const validatedData = registerSchema.parse(userData);
       const newUser = await UserService.create(validatedData);
+
+      // --- CREAR COOKIE SESIÓN PARA NUEVO USUARIO ---
+      cookieStore.set('token-commoda', newUser.id, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/',
+      });
       
       return NextResponse.json({ 
         user: newUser, 
@@ -46,8 +64,6 @@ export async function POST(req: Request) {
 
     } catch (zodError) {
       if (zodError instanceof ZodError) {
-        // Esto te dirá exactamente qué campo falta en la consola de Vercel
-        console.error("Zod Error Details:", zodError.issues);
         return NextResponse.json({ 
           message: `Error de validación: ${zodError.issues[0].message}` 
         }, { status: 400 });

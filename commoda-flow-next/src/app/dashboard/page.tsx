@@ -75,7 +75,7 @@ export default function UserDashboard() {
                   <div className="w-12 h-12 bg-[#F5F8FF] rounded-2xl flex items-center justify-center text-xl">💻</div>
                   <div>
                     {/* Usamos hardwareDetails porque es lo que viene de Prisma (con el include) */}
-                    <h3 className="font-bold text-[#1A263C]">{rental.hardwareDetails?.model || "Equipo"}</h3>
+                    <h3 className="font-bold text-[#1A263C]">{rental.hardware?.model || "Equipo"}</h3>
                     <p className="text-xs text-slate-400">
                       Vence el: {new Date(rental.endDate).toLocaleDateString()}
                     </p>

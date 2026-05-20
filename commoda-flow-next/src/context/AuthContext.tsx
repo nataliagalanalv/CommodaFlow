@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (userData: User) => void;
   logout: () => Promise<void>;
   updateUser: (userData: User) => void;
+  isAuthenticated: boolean; 
 }
 
 // 2. Creamos el Contexto (la "caja" de datos)
@@ -63,7 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

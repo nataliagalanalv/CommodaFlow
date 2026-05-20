@@ -4,7 +4,7 @@
 import React, { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import type { Hardware } from '../types/hardware';
-import { useAuth } from '../hooks/useAuth'; // Asegúrate de tener este hook para acceder al usuario
+import { useAuth } from '../context/AuthContext'; 
 
 interface RentalModalProps {
   isOpen: boolean;

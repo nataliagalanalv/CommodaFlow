@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 import { UserAvatar } from './UserAvatar';
 import Link from 'next/link';
 import Image from 'next/image';

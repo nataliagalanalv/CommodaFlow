@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth'; // Asegúrate de que la ruta sea correcta
+import { useAuth } from '../../context/AuthContext'; 
 import { toast } from 'sonner';
 import Image from 'next/image';
 

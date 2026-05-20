@@ -29,7 +29,6 @@ export const LoginForm: React.FC = () => {
       if (response.ok) {
       toast.success(data.message || '¡Bienvenido!');
         login(data.user); 
-        
         router.push('/');  
       } else {
         throw new Error(data.message || 'Error al autenticar');

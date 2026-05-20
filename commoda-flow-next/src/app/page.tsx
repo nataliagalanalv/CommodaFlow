@@ -3,11 +3,19 @@
 import { useAuth } from '../context/AuthContext';
 import { InventoryList } from '../components/InventoryList';
 import { SearchBar } from '../components/SearchBar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
-  const { isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -17,11 +25,19 @@ export default function HomePage() {
     );
   }
 
+  if (!user) return null;
+
   return (
     <main className="min-h-screen bg-white">
-
       <div className="max-w-[1600px] mx-auto px-8 pt-20 pb-10 space-y-4">
         
+        {/* Título de bienvenida opcional para dar contexto */}
+        <div className="px-2 mb-2">
+          <h1 className="text-2xl font-black text-[#1A263C]">
+            Hola, {user.name.split(' ')[0]} 👋
+          </h1>
+        </div>
+
         <div className="flex justify-end">
           <div className="w-full lg:max-w-xl">
             <SearchBar onSearch={setSearchTerm} />

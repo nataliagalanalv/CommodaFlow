@@ -29,7 +29,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="max-w-[1600px] mx-auto px-8 pt-20 pb-10 space-y-4">
+      <div className="max-w-[1600px] mx-auto px-8 pt-4 pb-10 space-y-4">
 
         <div className="flex justify-end">
           <div className="w-full lg:max-w-xl">

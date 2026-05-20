@@ -49,14 +49,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } finally {
-      setUser(null);
-      localStorage.removeItem('commoda_user');
-      window.location.href = '/login';
-    }
-  };
+  try {
+    const logoutPromise = fetch('/api/auth/logout', { method: 'POST' });
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout')), 2000)
+    );
+
+    await Promise.race([logoutPromise, timeoutPromise]);
+  } catch (err) {
+    console.error("Error al llamar a logout API, procediendo con limpieza local:", err);
+  } finally {
+    setUser(null);
+    localStorage.removeItem('commoda_user');
+    
+    window.location.replace('/login');
+  }
+};
 
   const updateUser = (userData: User) => {
     setUser(userData);

@@ -1,5 +1,5 @@
 import './globals.css';
-import { AuthProvider } from '../context/AuthProvider';
+import { AuthProvider } from '../context/AuthContext';
 import { NavWrapper } from '../components/NavWrapper';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

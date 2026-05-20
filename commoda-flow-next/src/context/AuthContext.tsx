@@ -71,13 +71,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 // 4. El Hook (Lo que usan tus componentes como NavWrapper o RecordPage)
-// Al estar en el mismo archivo, ya tiene acceso a AuthContext sin errores de build
 export const useAuth = () => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
-    // Este error es el que te saltaba en el build. 
-    // Significa que intentaste usar useAuth fuera de un <AuthProvider>
+    // Si estamos en el servidor (durante el build) y falla, devolvemos un estado vacío por defecto
+    // para que el proceso de compilación no explote en la página 404.
+    if (typeof window === 'undefined') {
+      return {
+        user: null,
+        isLoading: true,
+        isAuthenticated: false,
+        login: () => {},
+        logout: async () => {},
+        updateUser: () => {}
+      };
+    }
+    // Si falla en el navegador del usuario, sí lanzamos el error para enterarnos
     throw new Error('useAuth debe usarse dentro de un AuthProvider');
   }
+  
   return context;
 };

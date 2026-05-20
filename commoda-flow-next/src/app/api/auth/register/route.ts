@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { UserService } from '../../../../services/user.service'; // Tu servicio existente
+import { UserService } from '../../../../services/user.service';
 import { registerSchema } from '../../../../schemas/user.schema';
 import bcrypt from 'bcryptjs';
+import { User } from '../../../../types/user.types'; // Asegúrate de importar el tipo User
+
+// Definimos la intersección localmente para mantener la seguridad de tipos
+type UserWithPassword = User & { password: string };
 
 export async function POST(req: Request) {
   try {
@@ -23,14 +27,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'El correo ya está registrado' }, { status: 400 });
     }
 
-    // 3. Encriptar contraseña y crear
+    // 3. Encriptar contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
     
+    // 4. Crear usuario
+    // Nota: Usamos 'user' en minúsculas porque en UserService 
+    // estamos normalizando todos los roles a minúsculas.
     const newUser = await UserService.create({
       name,
       email,
       password: hashedPassword,
-      role: 'USER' // Asignar rol por defecto
+      role: 'USER' 
     });
 
     return NextResponse.json({ 

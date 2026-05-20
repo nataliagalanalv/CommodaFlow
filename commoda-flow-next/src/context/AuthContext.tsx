@@ -50,18 +50,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
   try {
-    const logoutPromise = fetch('/api/auth/logout', { method: 'POST' });
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Timeout')), 2000)
-    );
-
-    await Promise.race([logoutPromise, timeoutPromise]);
-  } catch (err) {
-    console.error("Error al llamar a logout API, procediendo con limpieza local:", err);
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (error) {
+    console.error("Error en logout API", error);
   } finally {
+    document.cookie = "token-commoda=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    
     setUser(null);
     localStorage.removeItem('commoda_user');
-    
+
     window.location.replace('/login');
   }
 };

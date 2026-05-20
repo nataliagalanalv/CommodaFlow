@@ -7,7 +7,7 @@ export default function proxy(request: NextRequest) {
 
   // Si no hay token y no es el login, redirigir al login
   if (!token && pathname !== '/login') {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   // Si hay token y quiere ir al login, redirigir al inicio

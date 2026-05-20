@@ -1,14 +1,12 @@
 "use client";
 
 import { useAuth } from '../context/AuthContext';
-import { LoginForm } from '../components/auth/LoginForm';
 import { InventoryList } from '../components/InventoryList';
 import { SearchBar } from '../components/SearchBar';
 import { useState } from 'react';
 
 export default function HomePage() {
-  const { user, isLoading } = useAuth();
-  const isAuthenticated = !!user;
+  const { isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
   if (isLoading) {
@@ -18,19 +16,6 @@ export default function HomePage() {
       </div>
     );
   }
-
-  if (!isAuthenticated) {
-  return (
-    <main className="min-h-screen bg-[#F5F8FF] flex flex-col items-center justify-center p-6">
-      <div className="max-w-md w-full">
-        {/* El contenedor blanco ahora envuelve todo */}
-        <div className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-white/50">
-          <LoginForm />
-        </div>
-      </div>
-    </main>
-  );
-}
 
   return (
     <main className="min-h-screen bg-white">

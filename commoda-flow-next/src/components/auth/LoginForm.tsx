@@ -4,12 +4,14 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext'; 
 import { toast } from 'sonner';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export const LoginForm: React.FC = () => {
   const { login } = useAuth(); // Usamos tu lógica de autenticación
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,22 +27,23 @@ export const LoginForm: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-      toast.success(data.message);
-      login(data.user);
-    } else {
-      throw new Error(data.message || 'Error al autenticar');
+      toast.success(data.message || '¡Bienvenido!');
+        login(data.user); 
+        
+        router.push('/');  
+      } else {
+        throw new Error(data.message || 'Error al autenticar');
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Ocurrió un error inesperado');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      toast.error(error.message);
-    } else {
-      toast.error('Ocurrió un error inesperado');
-    }
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

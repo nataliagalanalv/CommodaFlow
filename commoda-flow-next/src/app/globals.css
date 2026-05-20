@@ -24,3 +24,15 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer base {
+  button {
+    @apply cursor-pointer;
+  }
+  
+  /* Si tienes elementos con onClick que no son botones, 
+     puedes crear una clase de utilidad */
+  .clickable {
+    @apply cursor-pointer;
+  }
+}

@@ -49,11 +49,11 @@ export const NavWrapper = () => {
                     Editar Usuario
                   </Link>
                   <button 
-                    onClick={logout}
-                    className="w-full text-left px-5 py-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    Cerrar Sesión
-                  </button>
+                      onClick={logout}
+                      className="w-full text-left px-5 py-3 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                            Cerrar Sesión
+                    </button>
                 </div>
               </div>
 

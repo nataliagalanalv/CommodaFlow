@@ -30,13 +30,6 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-[1600px] mx-auto px-8 pt-20 pb-10 space-y-4">
-        
-        {/* Título de bienvenida opcional para dar contexto */}
-        <div className="px-2 mb-2">
-          <h1 className="text-2xl font-black text-[#1A263C]">
-            Hola, {user.name.split(' ')[0]} 👋
-          </h1>
-        </div>
 
         <div className="flex justify-end">
           <div className="w-full lg:max-w-xl">

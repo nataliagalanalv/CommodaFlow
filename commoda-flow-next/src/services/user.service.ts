@@ -1,61 +1,64 @@
 import { neon } from '@neondatabase/serverless';
 import { prisma } from '../lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, users as PrismaUser } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { User, UserCreateInput } from '../types/user.types';
+import { users as CustomUser, UserCreateInput } from '../types/user.types';
 
 const sql = neon(process.env.DATABASE_URL!);
 
 export const UserService = {
   
   // 1. Verificar existencia (Neon)
-  findByEmail: async (email: string): Promise<User | null> => {
-    const users = await sql`SELECT id, name, email, role FROM users WHERE email = ${email}`;
-    if (users.length === 0) return null;
+  findByEmail: async (email: string): Promise<CustomUser | null> => {
+    const result = await sql`SELECT * FROM users WHERE email = ${email}`;
+    if (result.length === 0) return null;
 
-    const user = users[0];
+    const user = result[0];
     return {
       ...user,
-      // Normalizamos el rol a minúsculas para que coincida con tu tipo 'admin' | 'user'
       role: user.role.toLowerCase() 
-    } as User;
+    } as CustomUser;
   },
 
   // 2. Crear usuario (Neon)
-  create: async (data: UserCreateInput): Promise<User> => {
+  create: async (data: UserCreateInput): Promise<CustomUser> => {
+    // CAMBIO: Usamos RETURNING * para que devuelva todos los campos (incluyendo el ID generado y createdAt)
     const result = await sql`
       INSERT INTO users (name, email, password, role)
       VALUES (${data.name}, ${data.email}, ${data.password}, ${data.role})
-      RETURNING id, name, email, role
+      RETURNING *
     `;
     const user = result[0];
     return {
       ...user,
       role: user.role.toLowerCase()
-    } as User;
+    } as CustomUser;
   },
 
   // 3. Obtener por ID (Prisma)
-  async getById(id: string): Promise<User | null> {
-    const user = await prisma.user.findUnique({ where: { id } });
+  // CAMBIO: Si quitamos el password con la desestructuración, el retorno debe ser Omit<CustomUser, 'password'>
+  async getById(id: string): Promise<Omit<CustomUser, 'password'> | null> {
+    const user = await prisma.users.findUnique({ where: { id } });
     if (!user) return null;
     
     const { password: _, ...userWithoutPassword } = user;
     return {
       ...userWithoutPassword,
       role: userWithoutPassword.role.toLowerCase()
-    } as User;
+    } as Omit<CustomUser, 'password'>;
   },
 
   // 4. Actualizar usuario (Prisma)
-  async update(id: string, data: Partial<Prisma.UserUpdateInput>): Promise<Omit<User, 'password'>> {
+  async update(id: string, data: Partial<Prisma.usersUpdateInput>): Promise<Omit<CustomUser, 'password'>> {
+    // CAMBIO: Arriba usamos Prisma.usersUpdateInput en minúsculas
+
     const updateData = { ...data };
 
     if (updateData.password && typeof updateData.password === 'string') {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    const user = await prisma.user.update({
+    const user = await prisma.users.update({
       where: { id },
       data: updateData,
     });
@@ -64,6 +67,6 @@ export const UserService = {
     return {
       ...userWithoutPassword,
       role: userWithoutPassword.role.toLowerCase()
-    } as Omit<User, 'password'>;
+    } as Omit<CustomUser, 'password'>;
   }
 };

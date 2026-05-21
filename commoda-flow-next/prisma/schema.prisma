@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model users {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
@@ -15,9 +15,8 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   avatarUrl String? 
-  rentals   Rental[]
+  rentals   rentals[]
 
-  @@map("users")
 }
 
 model Hardware {
@@ -28,10 +27,10 @@ model Hardware {
   dailyRate Float
   status    HardwareStatus @default(AVAILABLE)
   createdAt DateTime       @default(now())
-  rentals   Rental[]
+  rentals   rentals[]
 }
 
-model Rental {
+model rentals {
   id         String    @id @default(uuid())
   userId     String
   hardwareId String
@@ -39,7 +38,7 @@ model Rental {
   endDate    DateTime?
   totalPrice Float?
   hardware   Hardware  @relation(fields: [hardwareId], references: [id])
-  user       User      @relation(fields: [userId], references: [id])
+  user       users     @relation(fields: [userId], references: [id])
 }
 
 enum Role {

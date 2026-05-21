@@ -25,7 +25,7 @@ export async function PATCH(
       );
     }
 
-    const dataToUpdate: Prisma.UserUpdateInput = {
+    const dataToUpdate: Prisma.usersUpdateInput = {
       name: body.name,
         avatarUrl: body.avatarUrl,
       ...(body.password ? { password: body.password } : {})

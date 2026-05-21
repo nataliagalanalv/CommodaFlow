@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { UserService } from '../../../../services/user.service';
 import { registerSchema } from '../../../../schemas/user.schema';
 import bcrypt from 'bcryptjs';
-import { User } from '../../../../types/user.types'; // Asegúrate de importar el tipo User
+import { users } from '../../../../types/user.types'; // Asegúrate de importar el tipo User
 
 // Definimos la intersección localmente para mantener la seguridad de tipos
-type UserWithPassword = User & { password: string };
+type UserWithPassword = users & { password: string };
 
 export async function POST(req: Request) {
   try {

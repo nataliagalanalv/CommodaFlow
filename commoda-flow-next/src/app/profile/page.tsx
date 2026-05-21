@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { UserProfileCard } from '../../components/UserProfileCard';
 import { useAuth } from '../../context/AuthContext';
-import type { User } from '../../types/user.types';
+import type { users } from '../../types/user.types';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth(); 

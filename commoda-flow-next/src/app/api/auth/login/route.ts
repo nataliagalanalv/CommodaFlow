@@ -4,7 +4,7 @@ import { ZodError } from 'zod';
 import { registerSchema } from '../../../../schemas/user.schema'; 
 import { cookies } from 'next/headers'; 
 import bcrypt from 'bcryptjs';
-import { User } from '../../../../types/user.types'; 
+import { users } from '../../../../types/user.types'; 
 
 export async function POST(req: Request) {
   try {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       // ==========================================
       // --- BLOQUE A: LOGIN (El usuario existe) ---
       // ==========================================
-      const userRecord = user as User & { password: string };
+      const userRecord = user as users & { password: string };
       const isPasswordValid = await bcrypt.compare(password, userRecord.password);
 
       if (isPasswordValid) {

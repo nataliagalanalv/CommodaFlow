@@ -43,7 +43,7 @@ export const LoginForm: React.FC = () => {
       if (response.ok) {
         toast.success(data.message || '¡Bienvenido!');
         login(data.user);
-        router.push('/'); 
+        window.location.href = '/'; 
       } else {
         throw new Error(data.message || 'Error al autenticar');
       }
@@ -96,9 +96,9 @@ export const LoginForm: React.FC = () => {
 
     toast.success('¡Cuenta creada! Bienvenido');
     login(loginData.user);
-    router.push('/');
+    window.location.href = '/';
 
-  } catch (error: unknown) {  // 👈 ahora el catch cierra el try correcto
+  } catch (error: unknown) {  
     if (error instanceof Error) {
       toast.error(error.message);
     } else {

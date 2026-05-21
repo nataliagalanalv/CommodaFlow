@@ -62,8 +62,8 @@ export const LoginForm: React.FC = () => {
   e.preventDefault();
   setIsSubmitting(true);
 
-  try {
-    const response = await fetch('/api/auth/register', {
+  try {  // 👈 FALTABA ESTE try {
+    const registerResponse = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -73,25 +73,32 @@ export const LoginForm: React.FC = () => {
       }),
     });
 
-    const data = await response.json();
+    const registerData = await registerResponse.json();
 
-    if (response.ok) {
-      toast.success('¡Cuenta creada! Ahora puedes acceder');
-      
-      // Limpiamos los campos de registro
-      setRegisterName('');
-      setRegisterEmail('');
-      setRegisterPassword('');
-      
-      // Movemos al usuario a la pestaña de login automáticamente
-      setIsLogin(true);
-      // Opcional: pre-rellenamos el email del login con el que se acaba de registrar
-      setEmail(registerEmail); 
-      
-    } else {
-      throw new Error(data.message || 'Error al registrarse');
+    if (!registerResponse.ok) {
+      throw new Error(registerData.message || 'Error al registrarse');
     }
-  } catch (error: unknown) {
+
+    const loginResponse = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        email: registerEmail, 
+        password: registerPassword,
+      }),
+    });
+
+    const loginData = await loginResponse.json();
+
+    if (!loginResponse.ok) {
+      throw new Error(loginData.message || 'Error al iniciar sesión');
+    }
+
+    toast.success('¡Cuenta creada! Bienvenido');
+    login(loginData.user);
+    router.push('/');
+
+  } catch (error: unknown) {  // 👈 ahora el catch cierra el try correcto
     if (error instanceof Error) {
       toast.error(error.message);
     } else {
@@ -101,6 +108,8 @@ export const LoginForm: React.FC = () => {
     setIsSubmitting(false);
   }
 };
+  
+
 
   return (
     // Contenedor principal con diseño de tarjeta

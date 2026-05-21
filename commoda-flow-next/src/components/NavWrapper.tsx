@@ -71,7 +71,7 @@ export const NavWrapper = () => {
                     Mi Historial
                   </Link>
                   
-                  {user?.role === 'admin' && (
+                  {user?.role === 'ADMIN' && (
                     <div className="mt-2 pt-2 border-t border-slate-50">
                       <Link href="/inventory/add" className="block px-5 py-3 text-sm font-extrabold text-[#3D70DD] hover:bg-blue-50/50">
                         + Añadir Equipo
@@ -91,7 +91,7 @@ export const NavWrapper = () => {
             <div className="flex items-center gap-4 bg-[#F5F8FF] pl-5 pr-2 py-2 rounded-2xl border border-blue-100/50">
               <div className="text-right hidden sm:block">
                 <div className="flex items-center gap-2 justify-end">
-                  {user?.role === 'admin' && (
+                  {user?.role === 'ADMIN' && (
                     <span className="text-[9px] bg-[#3D70DD] text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
                       Admin
                     </span>

@@ -16,6 +16,8 @@ model User {
   createdAt DateTime @default(now())
   avatarUrl String? 
   rentals   Rental[]
+
+  @@map("users")
 }
 
 model Hardware {

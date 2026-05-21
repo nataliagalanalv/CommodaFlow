@@ -10,13 +10,16 @@ type UserWithPassword = users & { password: string };
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    
-    // 1. Validar con Zod
+    console.log('Body recibido:', JSON.stringify(body));
+
     const result = registerSchema.safeParse(body);
     
     if (!result.success) {
-      const errorMessage = result.error.issues[0].message;
-      return NextResponse.json({ message: errorMessage }, { status: 400 });
+      console.error('Zod falló:', JSON.stringify(result.error.issues));
+      return NextResponse.json({ 
+        message: result.error.issues[0].message,
+        errors: result.error.issues  // 👈 ver en Network tab
+      }, { status: 400 });
     }
 
     const { name, email, password } = result.data;

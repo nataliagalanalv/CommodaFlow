@@ -10,7 +10,7 @@ export const AdminGuard = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Si ya terminó de cargar y no es admin o no está logueado, redirigimos
-    if (!isLoading && (!isAuthenticated || user?.role !== 'admin')) {
+    if (!isLoading && (!isAuthenticated || user?.role !== 'ADMIN')) {
       router.replace('/');
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -25,7 +25,7 @@ export const AdminGuard = ({ children }: { children: React.ReactNode }) => {
   }
 
   // Si no es admin, no renderizamos nada mientras el useEffect hace la redirección
-  if (!isAuthenticated || user?.role !== 'admin') {
+  if (!isAuthenticated || user?.role !== 'ADMIN') {
     return null;
   }
 

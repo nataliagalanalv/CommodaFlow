@@ -30,7 +30,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ user }) => {
         <div className="flex items-center gap-2">
           <span className={`
             inline-flex items-center px-4 py-1 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] border shadow-sm
-            ${user.role === 'admin' 
+            ${user.role === 'ADMIN' 
               ? 'bg-[#F0E7FF] text-[#7C3AED] border-[#E2D1FF]' 
               : 'bg-[#F5F8FF] text-[#3D70DD] border-[#DBE4FF]'
             }
@@ -38,7 +38,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({ user }) => {
             {user.role}
           </span>
           
-          {user.role === 'admin' && (
+          {user.role === 'ADMIN' && (
             <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest ml-2">
               Privilegios Totales
             </span>

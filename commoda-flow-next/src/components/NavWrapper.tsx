@@ -93,7 +93,7 @@ export const NavWrapper = () => {
                 <div className="flex items-center gap-2 justify-end">
                   {user?.role === 'ADMIN' && (
                     <span className="text-[9px] bg-[#3D70DD] text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
-                      Admin
+                      ADMIN
                     </span>
                   )}
                   <p className="text-sm font-black text-[#1A263C]">

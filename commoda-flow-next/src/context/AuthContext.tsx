@@ -1,15 +1,15 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types/user.types'; 
+import { users } from '../types/user.types'; 
 
 // 1. Definimos la forma de los datos que tendrá el contexto
 interface AuthContextType {
-  user: User | null;
+  user: users | null;
   isLoading: boolean;
-  login: (userData: User) => void;
+  login: (userData: users) => void;
   logout: () => Promise<void>;
-  updateUser: (userData: User) => void;
+  updateUser: (userData: users) => void;
   isAuthenticated: boolean; 
 }
 
@@ -19,7 +19,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // 3. El Proveedor (El componente que envuelve la app)
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<users | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     initializeAuth();
   }, []);
 
-  const login = (userData: User) => {
+  const login = (userData: users) => {
     setUser(userData);
     localStorage.setItem('commoda_user', JSON.stringify(userData));
   };
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 };
 
-  const updateUser = (userData: User) => {
+  const updateUser = (userData: users) => {
     setUser(userData);
     localStorage.setItem('commoda_user', JSON.stringify(userData));
   };

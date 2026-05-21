@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { prisma } from '../lib/prisma';
-import { Prisma, users as PrismaUser } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { users as CustomUser, UserCreateInput } from '../types/user.types';
 

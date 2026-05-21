@@ -1,13 +1,13 @@
 import { prisma } from '../lib/prisma';
-import { Rental, HardwareStatus } from '@prisma/client';
+import { rentals, HardwareStatus } from '@prisma/client';
 
 export const RentalService = {
   // Crear un alquiler
-  async create(userId: string, hardwareId: string): Promise<Rental> {
+  async create(userId: string, hardwareId: string): Promise<rentals> {
     // Usamos una transacción para asegurar que si algo falla, no se cree el alquiler a medias
     return await prisma.$transaction(async (tx) => {
       // 1. Creamos el registro de alquiler
-      const rental = await tx.rental.create({
+      const rental = await tx.rentals.create({
         data: {
           userId,
           hardwareId,
@@ -26,8 +26,8 @@ export const RentalService = {
   },
 
   // Obtener alquileres de un usuario
-  async getByUser(userId: string): Promise<Rental[]> {
-    return await prisma.rental.findMany({
+  async getByUser(userId: string): Promise<rentals[]> {
+    return await prisma.rentals.findMany({
       where: { userId },
       include: {
         hardware: true, 
@@ -38,9 +38,9 @@ export const RentalService = {
   },
 
   // Finalizar un alquiler (Devolución)
-  async finishRental(rentalId: string, hardwareId: string): Promise<Rental> {
+  async finishRental(rentalId: string, hardwareId: string): Promise<rentals> {
     return await prisma.$transaction(async (tx) => {
-      const rental = await tx.rental.update({
+      const rental = await tx.rentals.update({
         where: { id: rentalId },
         data: { endDate: new Date() },
       });

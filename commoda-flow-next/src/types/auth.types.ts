@@ -1,12 +1,12 @@
-import type { User } from './user.types';
+import type { users } from './user.types';
 
 export interface AuthState {
-  user: User | null;
+  user: users | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error?: string | null; 
 }
 export interface AuthResponse {
-  user: User;
+  user: users;
   token: string;
 }

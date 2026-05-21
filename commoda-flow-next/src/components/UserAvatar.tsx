@@ -2,10 +2,10 @@
 
 import React from 'react';
 import Image from 'next/image';
-import type { User } from '../types/user.types';
+import type { users } from '../types/user.types';
 
 interface UserAvatarProps {
-  user: User | null; // Aceptamos null por si el estado de auth está cargando
+  user: users | null; // Aceptamos null por si el estado de auth está cargando
   size?: 'sm' | 'md' | 'lg';
 }
 

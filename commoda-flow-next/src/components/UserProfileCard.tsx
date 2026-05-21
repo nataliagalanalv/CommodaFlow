@@ -3,10 +3,10 @@
 
 import React from 'react';
 import { UserAvatar } from './UserAvatar';
-import type { User } from '../types/user.types';
+import type { users } from '../types/user.types';
 
 interface UserProfileCardProps {
-  user: User;
+  user: users;
 }
 
 export const UserProfileCard: React.FC<UserProfileCardProps> = ({ user }) => {

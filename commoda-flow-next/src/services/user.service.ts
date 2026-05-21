@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { users as CustomUser, UserCreateInput } from '../types/user.types';
+import { v4 as uuidv4 } from 'uuid';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -14,25 +15,19 @@ export const UserService = {
     if (result.length === 0) return null;
 
     const user = result[0];
-    return {
-      ...user,
-      role: user.role.toLowerCase() 
-    } as CustomUser;
+    return {...user, role: user.role.toLowerCase() } as CustomUser;
   },
 
   // 2. Crear usuario (Neon)
   create: async (data: UserCreateInput): Promise<CustomUser> => {
-    // CAMBIO: Usamos RETURNING * para que devuelva todos los campos (incluyendo el ID generado y createdAt)
+    const id = uuidv4();
     const result = await sql`
-      INSERT INTO users (name, email, password, role)
-      VALUES (${data.name}, ${data.email}, ${data.password}, ${data.role})
+      INSERT INTO users (id, name, email, password, role)
+      VALUES (${id}, ${data.name}, ${data.email}, ${data.password}, ${data.role})
       RETURNING *
     `;
     const user = result[0];
-    return {
-      ...user,
-      role: user.role.toLowerCase()
-    } as CustomUser;
+    return {...user, role: user.role.toLowerCase()} as CustomUser;
   },
 
   // 3. Obtener por ID (Prisma)

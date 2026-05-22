@@ -124,7 +124,7 @@ export const LoginForm: React.FC = () => {
             height={80}
             priority
             className="object-contain"
-            // onError={(e) => console.error('Error cargando logo:', e)} // Para debug
+            onError={(e) => console.error('Error cargando logo:', e)} 
           />
         </div>
         <div className="mt-4 text-center">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from '../context/AuthContext';
-import { UserAvatar } from './UserAvatar';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -77,7 +76,7 @@ export const NavWrapper = () => {
                   
                   {user?.role?.toLowerCase() === 'admin' && (
                     <div className="mt-2 pt-2 border-t border-slate-50">
-                      <Link href="/inventory/add" className="block px-5 py-3 text-sm font-bold text-slate-700 hover:bg-[#F5F8FF] hover:text-[#3D70DD]">
+                      <Link href="/add" className="block px-5 py-3 text-sm font-bold text-slate-700 hover:bg-[#F5F8FF] hover:text-[#3D70DD]">
                         + Añadir Equipo
                       </Link>
                     </div>

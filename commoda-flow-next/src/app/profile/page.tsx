@@ -10,11 +10,7 @@ export default function ProfilePage() {
 
   const [name, setName] = useState(user?.name || 'Natalia Corner');
   const [password, setPassword] = useState('');
-  const [avatarSeed, setAvatarSeed] = useState(user?.avatarUrl?.split('=')[1] || 'Natalia');
   const [loading, setLoading] = useState(false);
-
-  
-  const currentAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +23,6 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
-          avatarUrl: currentAvatarUrl,
           ...(password && { password }) // Solo envía la password si hay texto
         }),
       });
@@ -64,7 +59,6 @@ export default function ProfilePage() {
             user={{
               ...user!,
               name: name,
-              avatarUrl: currentAvatarUrl
             }} 
           />
         </div>
@@ -93,17 +87,6 @@ export default function ProfilePage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all" 
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black text-[#3D70DD] uppercase tracking-widest ml-1">Seed de Avatar</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej: Natalia" 
-                  value={avatarSeed}
-                  onChange={(e) => setAvatarSeed(e.target.value)}
-                  className="w-full mt-1 px-5 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 transition-all font-medium text-[#1A263C]" 
                 />
               </div>
             </div>

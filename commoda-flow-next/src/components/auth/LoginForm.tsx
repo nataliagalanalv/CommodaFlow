@@ -117,14 +117,13 @@ export const LoginForm: React.FC = () => {
       {/* Sección del Logo */}
       <div className="flex flex-col items-center mb-6">
         <div className="w-20 h-20 relative">
-          <Image
-            src={LOGO_ICON}
-            alt="CommodaFlow Logo"
-            width={80}
-            height={80}
-            priority
-            className="object-contain"
-            onError={(e) => console.error('Error cargando logo:', e)} 
+          <img
+          src="/assets/commodaflow_logo_onlyicon.png"
+          alt="CommodaFlow Logo"
+          width={80}
+          height={80}
+          className="object-contain w-full h-full"
+          onError={(e) => console.error('Error cargando logo:', e)} 
           />
         </div>
         <div className="mt-4 text-center">

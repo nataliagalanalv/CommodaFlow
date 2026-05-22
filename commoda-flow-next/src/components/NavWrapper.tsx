@@ -77,7 +77,7 @@ export const NavWrapper = () => {
                   
                   {user?.role?.toLowerCase() === 'admin' && (
                     <div className="mt-2 pt-2 border-t border-slate-50">
-                      <Link href="/inventory/add" className="block px-5 py-3 text-sm font-extrabold text-[#3D70DD] hover:bg-blue-50/50">
+                      <Link href="/inventory/add" className="block px-5 py-3 text-sm font-bold text-slate-700 hover:bg-[#F5F8FF] hover:text-[#3D70DD]">
                         + Añadir Equipo
                       </Link>
                     </div>

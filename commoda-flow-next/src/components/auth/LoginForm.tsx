@@ -254,10 +254,6 @@ export const LoginForm: React.FC = () => {
           </button>
         </form>
       )}
-
-      <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest pt-6 mt-6 border-t border-slate-100 w-full">
-        Acceso al Panel de Control
-      </p>
     </div>
   );
 };

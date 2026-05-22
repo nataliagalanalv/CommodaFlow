@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Importamos el router de Next
-import { AdminGuard } from '../../components/auth/AdminGuard'; // Aseguramos que solo admins accedan
+import { AdminGuard } from '../../components/auth/AdminGuard'
 import type { HardwareCategory } from '../../types/hardware';
 
 const CATEGORIES = [

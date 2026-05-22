@@ -6,8 +6,7 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-// Ruta al logo (asegúrate de que el archivo exista en public/assets/)
-const LOGO_ICON = '/assets/commodaFlow_logo_onlyicon.png';
+const LOGO_ICON = '/assets/commodaflow_logo_onlyicon.png';
 
 export const LoginForm: React.FC = () => {
   const { login } = useAuth();

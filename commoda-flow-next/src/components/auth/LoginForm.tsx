@@ -117,7 +117,7 @@ export const LoginForm: React.FC = () => {
       {/* Sección del Logo */}
       <div className="flex flex-col items-center mb-6">
         <div className="w-20 h-20 relative">
-          <img
+          <Image
           src="/assets/commodaflow_logo_onlyicon.png"
           alt="CommodaFlow Logo"
           width={80}

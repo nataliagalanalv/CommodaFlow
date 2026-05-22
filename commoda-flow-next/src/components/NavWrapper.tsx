@@ -5,10 +5,14 @@ import { UserAvatar } from './UserAvatar';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const LOGO_ICON = '/assets/CommodaFlow_logo_onlyicon.png';
+const LOGO_ICON = '/assets/commodaflow_logo_onlyicon.png';
 
 export const NavWrapper = () => {
   const { user, logout, isAuthenticated } = useAuth();
+
+  const displayName = user?.name || user?.email?.split('@')[0] || 'Usuario';
+
+  const displayRole = user?.role?.toLowerCase() === 'admin' ? 'Administrador' : 'Usuario';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-100">
@@ -71,7 +75,7 @@ export const NavWrapper = () => {
                     Mi Historial
                   </Link>
                   
-                  {user?.role === 'ADMIN' && (
+                  {user?.role?.toLowerCase() === 'admin' && (
                     <div className="mt-2 pt-2 border-t border-slate-50">
                       <Link href="/inventory/add" className="block px-5 py-3 text-sm font-extrabold text-[#3D70DD] hover:bg-blue-50/50">
                         + Añadir Equipo
@@ -85,30 +89,20 @@ export const NavWrapper = () => {
           )}
         </div>
 
-        {/* SECCIÓN DERECHA */}
+        {/* SECCIÓN DERECHA: CAPSULA DE PERFIL */}
         <div className="flex items-center gap-4">
           {isAuthenticated && (
-            <div className="flex items-center gap-4 bg-[#F5F8FF] pl-5 pr-2 py-2 rounded-2xl border border-blue-100/50">
-              <div className="text-right hidden sm:block">
-                <div className="flex items-center gap-2 justify-end">
-                  {user?.role === 'ADMIN' && (
-                    <span className="text-[9px] bg-[#3D70DD] text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
-                      ADMIN
-                    </span>
-                  )}
-                  <p className="text-sm font-black text-[#1A263C]">
-                    {user?.name}
-                  </p>
-                </div>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                  {user?.email}
-                </p>
-              </div>
-              <div className="relative">
-                <UserAvatar user={user!} size="sm" />
-                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-              </div>
-            </div>
+            <Link 
+              href="/profile" 
+              className="flex flex-col items-end justify-center bg-[#F5F8FF] px-6 py-2.5 rounded-2xl border border-blue-100/50 hover:bg-[#EEF4FF] hover:border-[#3D70DD]/30 transition-all group"
+            >
+              <p className="text-sm font-black text-[#1A263C] group-hover:text-[#3D70DD] transition-colors leading-tight">
+                {displayName}
+              </p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                {displayRole}
+              </p>
+            </Link>
           )}
         </div>
       </div>

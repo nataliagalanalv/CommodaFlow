@@ -48,7 +48,7 @@ export default function AddHardwarePage() {
 
       console.log('✅ Hardware guardado con éxito en Neon');
       
-      router.push('/inventory'); 
+      router.push('/'); 
       router.refresh(); 
       
     } catch (error) {

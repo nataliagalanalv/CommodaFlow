@@ -30,38 +30,41 @@ export const UserService = {
     return {...user, role: user.role.toLowerCase()} as CustomUser;
   },
 
-  // 3. Obtener por ID (Prisma)
-  // CAMBIO: Si quitamos el password con la desestructuración, el retorno debe ser Omit<CustomUser, 'password'>
-  async getById(id: string): Promise<Omit<CustomUser, 'password'> | null> {
-    const user = await prisma.users.findUnique({ where: { id } });
-    if (!user) return null;
-    
-    const { password: _, ...userWithoutPassword } = user;
-    return {
-      ...userWithoutPassword,
-      role: userWithoutPassword.role.toLowerCase()
-    } as Omit<CustomUser, 'password'>;
-  },
+ // 3. Obtener por ID (Neon - consistente con create)
+async getById(id: string): Promise<Omit<CustomUser, 'password'> | null> {
+  const result = await sql`SELECT * FROM users WHERE id = ${id}`;
+  if (result.length === 0) return null;
+  
+  const { password: _, ...user } = result[0];
+  return { ...user, role: user.role.toLowerCase() } as Omit<CustomUser, 'password'>;
+},
 
-  // 4. Actualizar usuario (Prisma)
-  async update(id: string, data: Partial<Prisma.usersUpdateInput>): Promise<Omit<CustomUser, 'password'>> {
-    // CAMBIO: Arriba usamos Prisma.usersUpdateInput en minúsculas
-
-    const updateData = { ...data };
-
-    if (updateData.password && typeof updateData.password === 'string') {
-      updateData.password = await bcrypt.hash(updateData.password, 10);
-    }
-
-    const user = await prisma.users.update({
-      where: { id },
-      data: updateData,
-    });
-
-    const { password: _, ...userWithoutPassword } = user;
-    return {
-      ...userWithoutPassword,
-      role: userWithoutPassword.role.toLowerCase()
-    } as Omit<CustomUser, 'password'>;
+// 4. Actualizar usuario (Neon - consistente con create)
+async update(id: string, data: Partial<UserCreateInput>): Promise<Omit<CustomUser, 'password'>> {
+  // Hashear password si viene
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, 10);
   }
+
+  // Construir dinámicamente solo los campos que llegan
+  const fields = Object.keys(data) as (keyof typeof data)[];
+  
+  if (fields.length === 0) throw new Error('No hay campos para actualizar');
+
+  // Verificar que existe primero
+  const exists = await sql`SELECT id FROM users WHERE id = ${id}`;
+  if (exists.length === 0) throw new Error(`No record was found for an update`);
+
+  const result = await sql`
+    UPDATE users
+    SET
+      name     = COALESCE(${data.name ?? null}, name),
+      password = COALESCE(${data.password ?? null}, password)
+    WHERE id = ${id}
+    RETURNING *
+  `;
+
+  const { password: _, ...user } = result[0];
+  return { ...user, role: user.role.toLowerCase() } as Omit<CustomUser, 'password'>;
+}
 };

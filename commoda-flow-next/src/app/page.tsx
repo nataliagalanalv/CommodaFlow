@@ -6,6 +6,7 @@ import { SearchBar } from '../components/SearchBar';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FilterBar } from '@/components/FilterBar';
+import router from 'next/dist/shared/lib/router/router';
 
 
 export default function HomePage() {
@@ -17,10 +18,10 @@ export default function HomePage() {
   const [status, setStatus] = useState('all');
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isLoading, router]);
+  if (!isLoading && user === null) { 
+    router.push('/login');
+  }
+}, [user, isLoading, router]);
 
   if (isLoading) {
     return (

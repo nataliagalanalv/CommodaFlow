@@ -2,8 +2,9 @@ import { neon } from '@neondatabase/serverless';
 import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { users as CustomUser, UserCreateInput } from '../types/user.types';
+import { users as CustomUser, UserCreateInput, UpdateUserRequest } from '../types/user.types';
 import { v4 as uuidv4 } from 'uuid';
+
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -40,7 +41,7 @@ async getById(id: string): Promise<Omit<CustomUser, 'password'> | null> {
 },
 
 // 4. Actualizar usuario (Neon - consistente con create)
-async update(id: string, data: Partial<UserCreateInput>): Promise<Omit<CustomUser, 'password'>> {
+async update(id: string, data: UpdateUserRequest): Promise<Omit<CustomUser, 'password'>> {
   // Hashear password si viene
   if (data.password) {
     data.password = await bcrypt.hash(data.password, 10);

@@ -5,6 +5,7 @@ export interface users {
   name: string;
   email: string;
   role: Role;
-  avatarUrl?: string;
+  password?: string;
 }
 export type UserCreateInput = Omit<users, 'id' | 'avatarUrl'> & { password: string };
+export type UpdateUserRequest = Partial<Omit<users, 'id' | 'email' | 'role'>>;

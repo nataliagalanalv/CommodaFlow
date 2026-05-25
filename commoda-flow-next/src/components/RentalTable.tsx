@@ -46,15 +46,6 @@ export const RentalTable: React.FC<RentalTableProps> = ({ rentals }) => {
                       year: 'numeric'
                     })}
                   </td>
-                  <td className="px-8 py-5">
-                    <span className={`inline-block px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm ${
-                      rental.status === 'overdue' 
-                        ? 'bg-red-50 text-red-500 border border-red-100' 
-                        : 'bg-green-50 text-green-500 border border-green-100'
-                    }`}>
-                      {rental.status === 'overdue' ? 'Atrasado' : 'Al día'}
-                    </span>
-                  </td>
                 </tr>
               ))
             )}

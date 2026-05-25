@@ -16,10 +16,11 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    console.log("user.id que se envía:", user.id);
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
+      const response = await fetch(`/api/user/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

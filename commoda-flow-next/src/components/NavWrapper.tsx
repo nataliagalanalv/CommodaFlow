@@ -15,7 +15,6 @@ export const NavWrapper = () => {
   const displayRole = user?.role?.toLowerCase() === 'admin' ? 'Administrador' : 'Usuario';
 
   useEffect(() => {
-  // Forzamos la actualización cada vez que entramos en la app
   refreshUser();
   }, []);
 

@@ -38,20 +38,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   useEffect(() => {
-    async function initializeAuth() {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (!res.ok) throw new Error("No session");
-          const data = await res.json();
-          setUser(data);
-      } catch (error) {
-        setUser(null); // <--- Forzamos a null si falla
-      } finally {
-        setIsLoading(false); // <--- ESTO DEBE EJECUTARSE SIEMPRE
-      }
+  async function initializeAuth() {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) throw new Error("No session");
+      const data = await res.json();
+      setUser(data.user || data); // ← igual que refreshUser
+    } catch {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-    initializeAuth();
-  }, []);
+  }
+  initializeAuth();
+}, []);
 
   const login = (userData: users) => {
     setUser(userData);

@@ -18,8 +18,8 @@ export default function RecordPage() {
   // 3. Forzamos a que 'data' use tu tipo Rental
   const rentals = (data || []) as Rental[];
 
-  const activeRentals = rentals.filter(r => r.status.toLowerCase() === 'active' || r.status.toLowerCase() === 'overdue');
-  const historicalRentals = rentals.filter(r => r.status.toLowerCase() !== 'active' && r.status.toLowerCase() !== 'overdue');
+  const activeRentals = rentals.filter(r => r.status === 'RENTED');
+  const historyRentals = rentals.filter(r => r.status === 'RETURNED');
 
   // Estados para los filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +28,7 @@ export default function RecordPage() {
   const [category, setCategory] = useState('all');
 
   const filteredHistory = useMemo(() => {
-    return historicalRentals.filter((rental) => {
+    return historyRentals.filter((rental) => {
       const item = rental.hardware;
       const price = item?.dailyRate || 0;
       
@@ -44,7 +44,7 @@ export default function RecordPage() {
 
       return matchesName && matchesStatus && matchesCategory && matchesPrice;
     });
-  }, [historicalRentals, searchTerm, statusFilter, category, priceRange]);
+  }, [historyRentals, searchTerm, statusFilter, category, priceRange]);
 
   // 3. FUNCIÓN PARA ANULAR/DEVOLVER ALQUILER (Frontend)
   const handleReturnEquipment = async (rentalId: string) => {

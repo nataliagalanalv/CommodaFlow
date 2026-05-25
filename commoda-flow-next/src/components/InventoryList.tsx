@@ -28,7 +28,7 @@ export function InventoryList({ search = '', category = 'all', priceRange = 'all
 
       // Filtro de Disponibilidad (Estado)
       // Ajustamos a 'available' o 'rented' según tu lógica de base de datos
-      const matchesStatus = status === 'all' || item.status === status;
+      const matchesStatus = status === 'all' || item.status.toLowerCase() === status.toLowerCase();
 
       // Filtro de Rango de Precio
       const price = item.dailyRate;

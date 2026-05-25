@@ -61,7 +61,8 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
           userId: user.id,
           startDate,
           endDate,
-          totalPrice
+          totalPrice,
+          Status: 'RENTED'
         }),
       });
 

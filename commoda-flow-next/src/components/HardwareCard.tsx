@@ -1,4 +1,4 @@
-"use client"; // Imprescindible porque usa useState y eventos
+"use client"; 
 
 import { useState } from 'react';
 import Image from 'next/image'; 

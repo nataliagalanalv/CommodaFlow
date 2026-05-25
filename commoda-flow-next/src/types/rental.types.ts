@@ -1,4 +1,4 @@
-export type RentalStatus = 'active' | 'returned' | 'overdue' | 'pending' | 'completed';
+export type RentalStatus = 'RENTED' | 'RETURNED' | 'OVERDUE' | 'PENDING' | 'COMPLETED';
 
 export interface Rental {
   id: string;

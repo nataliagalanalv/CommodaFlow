@@ -26,18 +26,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     async function initializeAuth() {
       try {
         const res = await fetch('/api/auth/me');
-        if (res.ok) {
+        if (!res.ok) throw new Error("No session");
           const data = await res.json();
-          if (data.user) {
-            setUser(data.user);
-            localStorage.setItem('commoda_user', JSON.stringify(data.user));
-          }
-        }
-      } catch (err) {
-        console.error("No hay sesión activa");
-        localStorage.removeItem('commoda_user');
+          setUser(data);
+      } catch (error) {
+        setUser(null); // <--- Forzamos a null si falla
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // <--- ESTO DEBE EJECUTARSE SIEMPRE
       }
     }
     initializeAuth();

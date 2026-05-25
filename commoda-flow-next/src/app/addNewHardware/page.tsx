@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Importamos el router de Next
 import { AdminGuard } from '../../components/auth/AdminGuard'
 import type { HardwareCategory } from '../../types/hardware';
+import { BackButton } from '@/components/BackButton';
 
 const CATEGORIES = [
   { value: 'LAPTOP', label: 'Portátil' },
@@ -61,11 +62,12 @@ export default function AddHardwarePage() {
 
   return (
     <AdminGuard>
-    <div className="max-w-2xl mx-auto px-6 py-12">
-      <header className="mb-10 text-center">
-        <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
-          Añadir <span className="text-[#3D70DD]">Nuevo Equipo</span>
-        </h1>
+      <BackButton />
+      <div className="max-w-2xl mx-auto px-6 py-12">
+        <header className="mb-10 text-center">
+          <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
+            Añadir <span className="text-[#3D70DD]">Nuevo Equipo</span>
+          </h1>
         <p className="text-slate-500 mt-2">Introduce los detalles técnicos para el catálogo.</p>
       </header>
 

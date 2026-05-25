@@ -8,11 +8,12 @@ export interface Rental {
   endDate: string;   // ISO Date
   status: RentalStatus;
   totalCost: number;
+
   
-  // Opcional: Campos "poblados" para mostrar info sin buscar otra vez
   hardware?: {
     model: string;
     dailyRate: number;
+    category: string;
   };
 
   user?: {

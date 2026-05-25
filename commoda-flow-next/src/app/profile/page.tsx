@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { UserProfileCard } from '../../components/UserProfileCard';
 import { useAuth } from '../../context/AuthContext';
 import type { users } from '../../types/user.types';
+import  { BackButton } from '@/components/BackButton';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth(); 
@@ -44,6 +45,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 space-y-10">
+      <BackButton />
       <header className="border-b border-slate-100 pb-8 text-center lg:text-left">
         <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
           Configuración de <span className="text-[#3D70DD]">Perfil</span>

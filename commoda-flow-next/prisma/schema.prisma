@@ -25,7 +25,7 @@ model Hardware {
   specs     String
   category  Category
   dailyRate Float
-  status    HardwareStatus @default(AVAILABLE)
+  status    Status         @default(AVAILABLE)
   createdAt DateTime       @default(now())
   rentals   rentals[]
 }
@@ -39,6 +39,7 @@ model rentals {
   totalPrice Float?
   hardware   Hardware  @relation(fields: [hardwareId], references: [id])
   user       users     @relation(fields: [userId], references: [id])
+  status     Status
 }
 
 enum Role {
@@ -52,8 +53,9 @@ enum Category {
   PERIPHERAL
 }
 
-enum HardwareStatus {
+enum Status {
   AVAILABLE
   RENTED
   MAINTENANCE
+  RETURNED
 }

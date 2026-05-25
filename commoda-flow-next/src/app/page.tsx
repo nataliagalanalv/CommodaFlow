@@ -5,11 +5,16 @@ import { InventoryList } from '../components/InventoryList';
 import { SearchBar } from '../components/SearchBar';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FilterBar } from '@/components/FilterBar';
+
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
+  const [category, setCategory] = useState('all');
+  const [priceRange, setPriceRange] = useState('all');
+  const [status, setStatus] = useState('all');
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -28,27 +33,32 @@ export default function HomePage() {
   if (!user) return null;
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="max-w-[1600px] mx-auto px-8 pt-4 pb-10 space-y-4">
-
-        <div className="flex justify-end">
-          <div className="w-full lg:max-w-xl">
-            <SearchBar onSearch={setSearchTerm} />
-          </div>
+  <main className="min-h-screen bg-white">
+    <div className="max-w-[1600px] mx-auto px-8 pt-4 pb-10 space-y-6">
+      
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <FilterBar 
+          category={category} setCategory={setCategory}
+          priceRange={priceRange} setPriceRange={setPriceRange}
+          status={status} setStatus={setStatus}
+        />
+        <div className="w-full lg:max-w-md">
+          <SearchBar onSearch={setSearchTerm} />
         </div>
-
-        <section className="mt-4">
-          <header className="px-2 mb-3">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-60">
-                Explorar Catálogo
-            </h3>
-          </header>
-
-          <div className="bg-[#F5F8FF]/40 p-8 sm:p-12 rounded-[3.5rem] border border-slate-100">
-            <InventoryList search={searchTerm} />
-          </div>
-        </section>
       </div>
-    </main>
-  );
+
+      <section className="mt-4">
+        {/* Pasa los nuevos filtros como props a InventoryList */}
+        <div className="bg-[#F5F8FF]/40 p-8 sm:p-12 rounded-[3.5rem] border border-slate-100">
+          <InventoryList 
+            search={searchTerm} 
+            category={category} 
+            priceRange={priceRange} 
+            status={status} 
+          />
+        </div>
+      </section>
+    </div>
+  </main>
+);
 }

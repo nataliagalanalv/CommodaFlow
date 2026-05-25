@@ -3,15 +3,21 @@
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect } from 'react';
 
 const LOGO_ICON = '/assets/commodaflow_logo_onlyicon.png';
 
 export const NavWrapper = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, refreshUser } = useAuth();
 
   const displayName = user?.name || user?.email?.split('@')[0] || 'Usuario';
 
   const displayRole = user?.role?.toLowerCase() === 'admin' ? 'Administrador' : 'Usuario';
+
+  useEffect(() => {
+  // Forzamos la actualización cada vez que entramos en la app
+  refreshUser();
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-100">

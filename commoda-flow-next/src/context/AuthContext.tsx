@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (userData: users) => void;
   logout: () => Promise<void>;
   updateUser: (userData: users) => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean; 
 }
 
@@ -21,6 +22,20 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<users | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshUser = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (res.ok) {
+        const data = await res.json();
+        // Si tu API devuelve { user: ... }, recuerda acceder a data.user
+        setUser(data.user || data); 
+      }
+    } catch (error) {
+      console.error("Error al refrescar usuario", error);
+    }
+  };
+
 
   useEffect(() => {
     async function initializeAuth() {
@@ -63,8 +78,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('commoda_user', JSON.stringify(userData));
   };
 
+  
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser, refreshUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
@@ -84,7 +101,8 @@ export const useAuth = () => {
         isAuthenticated: false,
         login: () => {},
         logout: async () => {},
-        updateUser: () => {}
+        updateUser: () => {},
+        refreshUser: async () => {}
       };
     }
     // Si falla en el navegador del usuario, sí lanzamos el error para enterarnos

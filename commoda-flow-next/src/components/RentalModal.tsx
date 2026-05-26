@@ -20,15 +20,34 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
   const [endDate, setEndDate] = useState('');
 
   // Cálculo de precio (mismo que el tuyo, súper limpio)
-  const totalPrice = useMemo(() => {
-    if (!startDate || !endDate) return 0;
+  const rentalValidation = useMemo(() => {
+    if (!startDate || !endDate) {
+      return { isValid: false, message: "Selecciona ambas fechas", days: 0 };
+    }
+    
     const start = new Date(startDate);
     const end = new Date(endDate);
+    
+    // Normalizamos a medianoche para evitar errores con horas/minutos
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
     const diffTime = end.getTime() - start.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { isValid: false, message: "La fecha de fin es anterior al inicio", days: 0 };
+    }
     
-    return diffDays > 0 ? diffDays * item.dailyRate : 0;
-  }, [startDate, endDate, item.dailyRate]);
+    if (diffDays === 0) {
+      return { isValid: false, message: "El alquiler mínimo es de 1 día", days: 0 };
+    }
+
+    return { isValid: true, message: "", days: diffDays };
+  }, [startDate, endDate]);
+
+  // El precio ahora depende de los días calculados en la validación
+  const totalPrice = rentalValidation.days * item.dailyRate;
 
   if (!isOpen) return null;
 
@@ -42,9 +61,10 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
       return;
     }
 
-    if (totalPrice <= 0) {
-      toast.error("La fecha de fin debe ser posterior a la de inicio", { 
-        style: { borderRadius: '1.5rem' } 
+    if (!rentalValidation.isValid) {
+      toast.warning(rentalValidation.message, { 
+        style: { borderRadius: '1.5rem' },
+        icon: '⚠️'
       });
       return;
     }
@@ -137,12 +157,29 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
               </div>
             </div>
 
-            {/* Caja de Resumen de Precio */}
-            <div className="bg-[#F5F8FF] p-6 rounded-[2rem] border border-blue-50 mt-4">
+            {startDate && endDate && !rentalValidation.isValid && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+                <span className="text-lg">⚠️</span>
+                <p className="text-[11px] font-black text-red-600 uppercase tracking-tight">
+                  {rentalValidation.message}
+                </p>
+              </div>
+            )}
+
+            {/* --- CAJA DE RESUMEN DE PRECIO ACTUALIZADA --- */}
+            <div className={`p-6 rounded-[2rem] border transition-all duration-300 mt-4 ${
+              rentalValidation.isValid 
+                ? 'bg-[#F5F8FF] border-blue-50 opacity-100' 
+                : 'bg-slate-50 border-slate-100 opacity-60'
+            }`}>
               <div className="flex justify-between items-center">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total estimado</span>
-                  <span className="text-3xl font-black text-[#2BB673] tracking-tighter">{totalPrice}€</span>
+                  <span className={`text-3xl font-black tracking-tighter transition-colors ${
+                    rentalValidation.isValid ? 'text-[#2BB673]' : 'text-slate-400'
+                  }`}>
+                    {totalPrice}€
+                  </span>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-[#3D70DD] font-black uppercase tracking-wider bg-white px-3 py-1.5 rounded-xl border border-blue-50 shadow-sm">

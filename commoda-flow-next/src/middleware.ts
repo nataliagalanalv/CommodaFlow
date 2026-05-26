@@ -22,5 +22,5 @@ export default function middleware(request: NextRequest) {
 
 export const config = {
   // Asegúrate de que los archivos estáticos y assets nunca pasen por el middleware
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|assets|.*\\..*).*)'], 
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|assets|login|register).*)'], 
 };

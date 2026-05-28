@@ -1,5 +1,5 @@
 import { useCallback, useState, useMemo } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, TextInput, StyleSheet, useColorScheme, TouchableOpacity, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';

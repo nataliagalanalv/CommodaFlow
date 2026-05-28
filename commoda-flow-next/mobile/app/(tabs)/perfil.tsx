@@ -15,13 +15,33 @@ export default function PerfilScreen() {
   const { user, logout, updateUser, token } = useAuthStore();
 
   const [name, setName] = useState(user?.name ?? '');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+
+  // ── Contraseña ─────────────────────────────────────────────────────────────
   const [showPasswordField, setShowPasswordField] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Mismatch solo cuando confirmar tiene texto y no coincide
+  const pwdMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   const initials = name
     ? name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
+
+  function togglePasswordSection() {
+    setShowPasswordField((v) => !v);
+    // Limpia todo al abrir/cerrar la sección
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  }
 
   async function handleSave() {
     if (!user) return;
@@ -29,6 +49,19 @@ export default function PerfilScreen() {
       Alert.alert('Error', 'El nombre no puede estar vacío');
       return;
     }
+
+    // Validación de contraseña (solo si el usuario ha rellenado el campo)
+    if (password.trim()) {
+      if (!confirmPassword.trim()) {
+        Alert.alert('Error', 'Por favor, repite la nueva contraseña');
+        return;
+      }
+      if (password !== confirmPassword) {
+        Alert.alert('Error', 'Las contraseñas no coinciden');
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
       const body: Record<string, string> = { name };
@@ -42,8 +75,12 @@ export default function PerfilScreen() {
       if (!res.ok) throw new Error('Error al actualizar');
       const updated = await res.json();
       updateUser({ ...user, name: updated.name ?? name });
+
+      // Limpia campos de contraseña tras guardar
       setPassword('');
+      setConfirmPassword('');
       setShowPasswordField(false);
+
       Alert.alert('¡Guardado!', 'Tus datos se han actualizado correctamente.');
     } catch {
       Alert.alert('Error', 'No se pudo conectar con el servidor.');
@@ -58,6 +95,8 @@ export default function PerfilScreen() {
       { text: 'Salir', style: 'destructive', onPress: logout },
     ]);
   }
+
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={[s.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -75,10 +114,11 @@ export default function PerfilScreen() {
           </View>
           <Text style={[s.email, { color: theme.textSecondary }]}>{user?.email ?? '-'}</Text>
 
-          {/* Formulario de edición */}
+          {/* ── Formulario de edición ─────────────────────────────────────── */}
           <View style={[s.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[s.cardTitle, { color: theme.text }]}>Editar datos</Text>
 
+            {/* Nombre */}
             <Text style={[s.label, { color: theme.primary }]}>Nombre completo</Text>
             <TextInput
               style={[s.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
@@ -88,10 +128,8 @@ export default function PerfilScreen() {
               placeholderTextColor={theme.textSecondary}
             />
 
-            <TouchableOpacity
-              style={s.togglePassword}
-              onPress={() => setShowPasswordField(!showPasswordField)}
-            >
+            {/* Toggle sección contraseña */}
+            <TouchableOpacity style={s.togglePassword} onPress={togglePasswordSection}>
               <Ionicons
                 name={showPasswordField ? 'chevron-up' : 'chevron-down'}
                 size={16}
@@ -102,24 +140,81 @@ export default function PerfilScreen() {
               </Text>
             </TouchableOpacity>
 
+            {/* Sección contraseña (colapsable) */}
             {showPasswordField && (
               <>
+                {/* Nueva contraseña */}
                 <Text style={[s.label, { color: theme.primary }]}>Nueva contraseña</Text>
-                <TextInput
-                  style={[s.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor={theme.textSecondary}
-                  secureTextEntry
-                />
+                <View style={s.inputWrapper}>
+                  <TextInput
+                    style={[
+                      s.input,
+                      s.inputWithEye,
+                      { color: theme.text, borderColor: theme.border, backgroundColor: theme.background },
+                    ]}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor={theme.textSecondary}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    style={s.eyeBtn}
+                    onPress={() => setShowPassword((v) => !v)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={18}
+                      color={theme.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Confirmar contraseña */}
+                <Text style={[s.label, { color: theme.primary }]}>Confirmar contraseña</Text>
+                <View style={s.inputWrapper}>
+                  <TextInput
+                    style={[
+                      s.input,
+                      s.inputWithEye,
+                      {
+                        color: theme.text,
+                        borderColor: pwdMismatch ? theme.danger : theme.border,
+                        backgroundColor: theme.background,
+                      },
+                    ]}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor={theme.textSecondary}
+                    secureTextEntry={!showConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    style={s.eyeBtn}
+                    onPress={() => setShowConfirmPassword((v) => !v)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={18}
+                      color={pwdMismatch ? theme.danger : theme.textSecondary}
+                    />
+                  </TouchableOpacity>
+                </View>
+                {pwdMismatch && (
+                  <Text style={[s.mismatchText, { color: theme.danger }]}>
+                    Las contraseñas no coinciden
+                  </Text>
+                )}
               </>
             )}
 
+            {/* Botón guardar */}
             <TouchableOpacity
-              style={[s.saveBtn, { backgroundColor: theme.primary }]}
+              style={[s.saveBtn, { backgroundColor: pwdMismatch ? theme.border : theme.primary }]}
               onPress={handleSave}
-              disabled={isLoading}
+              disabled={isLoading || pwdMismatch}
             >
               {isLoading
                 ? <ActivityIndicator color="#fff" />
@@ -127,7 +222,7 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Info de cuenta */}
+          {/* ── Info de cuenta ────────────────────────────────────────────── */}
           <View style={[s.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[s.cardTitle, { color: theme.text }]}>Cuenta</Text>
             <Row icon="mail-outline" label="Email" value={user?.email ?? '-'} theme={theme} />
@@ -149,6 +244,8 @@ export default function PerfilScreen() {
   );
 }
 
+// ── Subcomponente fila de info ─────────────────────────────────────────────────
+
 function Row({ icon, label, value, theme }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string; value: string; theme: Theme;
@@ -164,6 +261,8 @@ function Row({ icon, label, value, theme }: {
   );
 }
 
+// ── Estilos ────────────────────────────────────────────────────────────────────
+
 const s = StyleSheet.create({
   container: { flex: 1 },
   scroll: { alignItems: 'center', padding: Spacing.xl, gap: Spacing.md, paddingBottom: Spacing['3xl'] },
@@ -175,7 +274,25 @@ const s = StyleSheet.create({
   card: { width: '100%', borderRadius: Radius.lg, borderWidth: 1, padding: Spacing.lg, gap: Spacing.sm },
   cardTitle: { fontSize: Typography.lg, fontWeight: '700', marginBottom: Spacing.xs },
   label: { fontSize: Typography.xs, fontWeight: '700', letterSpacing: 0.8, marginTop: Spacing.xs },
-  input: { borderWidth: 1, borderRadius: Radius.md, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: Typography.md },
+  // Input base
+  input: {
+    borderWidth: 1, borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+    fontSize: Typography.md,
+  },
+  // Input con espacio para el ojo
+  inputWithEye: { paddingRight: Spacing.xl + Spacing.lg },
+  // Wrapper relativo para posicionar el ojo
+  inputWrapper: { position: 'relative' },
+  eyeBtn: {
+    position: 'absolute',
+    right: Spacing.md,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  mismatchText: { fontSize: Typography.xs, fontWeight: '600', marginTop: -Spacing.xs },
+  // Controles
   togglePassword: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, paddingVertical: Spacing.xs },
   togglePasswordText: { fontSize: Typography.sm, fontWeight: '500' },
   saveBtn: { borderRadius: Radius.md, padding: Spacing.md, alignItems: 'center', marginTop: Spacing.sm },

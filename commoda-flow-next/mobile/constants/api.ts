@@ -1,4 +1,12 @@
-// En desarrollo: usa la IP local de tu máquina (no localhost, el móvil/emulador no puede resolver localhost del PC)
-// Ejecuta `ipconfig` en Windows y busca tu IPv4. Ejemplo: 192.168.1.45
-// En producción: cambia por tu dominio de Vercel u otro hosting
+// ── Configuración de la URL base de la API ────────────────────────────────────
+//
+// DESARROLLO LOCAL (Expo Go en el mismo WiFi que el PC):
+//   Usa la IP local de tu máquina. Ejecuta `ipconfig` en Windows y busca tu IPv4.
+//   Asegúrate de tener `npm run dev` ejecutándose en commoda-flow-next/.
+//   Ejemplo: 'http://192.168.1.135:3000'
+//
+// PRODUCCIÓN (Vercel):
+//   Cambia a tu URL de Vercel cuando el servidor local no esté corriendo.
+//   Ejemplo: 'https://commoda-flow-next.vercel.app'
+//
 export const API_URL = 'http://192.168.1.135:3000';

@@ -12,8 +12,10 @@ import { Colors, Theme, Typography, Spacing, Radius } from '../../constants/them
 import { API_URL } from '../../constants/api';
 import { Hardware, HardwareStatus, HardwareCategory } from '../../types';
 
+/** Rangos de precio diario disponibles en el filtro de precio. */
 type PriceRange = 'all' | 'under25' | '25-50' | '50-100' | 'over100';
 
+/** Opciones del filtro de estado del equipo. */
 const STATUS_OPTIONS: { value: HardwareStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'AVAILABLE', label: 'Disponible' },
@@ -21,6 +23,7 @@ const STATUS_OPTIONS: { value: HardwareStatus | 'all'; label: string }[] = [
   { value: 'MAINTENANCE', label: 'Mantenimiento' },
 ];
 
+/** Opciones del filtro de categoría de equipo. */
 const CATEGORY_OPTIONS: { value: HardwareCategory | 'all'; label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'LAPTOP', label: 'Portátil' },
@@ -28,6 +31,7 @@ const CATEGORY_OPTIONS: { value: HardwareCategory | 'all'; label: string }[] = [
   { value: 'PERIPHERAL', label: 'Periférico' },
 ];
 
+/** Opciones del filtro de rango de precio diario. */
 const PRICE_OPTIONS: { value: PriceRange; label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'under25', label: '<25€' },
@@ -36,6 +40,13 @@ const PRICE_OPTIONS: { value: PriceRange; label: string }[] = [
   { value: 'over100', label: '>100€' },
 ];
 
+/**
+ * Determina si la tarifa diaria de un equipo se encuentra dentro del rango dado.
+ *
+ * @param rate  - Precio diario del equipo en euros.
+ * @param range - Rango de precio seleccionado en el filtro.
+ * @returns `true` si el precio encaja en el rango; `false` en caso contrario.
+ */
 function matchesPrice(rate: number, range: PriceRange): boolean {
   if (range === 'all') return true;
   if (range === 'under25') return rate < 25;
@@ -44,6 +55,18 @@ function matchesPrice(rate: number, range: PriceRange): boolean {
   return rate > 100;
 }
 
+/**
+ * Componente genérico de chips de filtro en fila horizontal deslizable.
+ *
+ * Renderiza un conjunto de opciones como botones tipo chip. El chip activo
+ * se muestra con el color primario del tema; los demás con borde y fondo neutro.
+ * Se usa en los tres paneles de filtro (estado, categoría y precio).
+ *
+ * @param options  - Array de pares `{ value, label }` para renderizar.
+ * @param selected - Valor actualmente seleccionado.
+ * @param onSelect - Callback invocado al pulsar un chip.
+ * @param theme    - Paleta de colores del tema activo.
+ */
 function FilterChips<T extends string>({
   options, selected, onSelect, theme,
 }: { options: { value: T; label: string }[]; selected: T; onSelect: (v: T) => void; theme: Theme }) {
@@ -67,6 +90,33 @@ function FilterChips<T extends string>({
   );
 }
 
+/**
+ * Pantalla de inventario de hardware de la aplicación móvil CommodaFlow.
+ *
+ * Muestra el listado completo de equipos obtenidos de `GET /api/hardware`
+ * y ofrece búsqueda por texto libre más tres filtros combinables: estado,
+ * categoría y rango de precio por día.
+ *
+ * ### Actualización automática
+ * Usa `useFocusEffect` (de `@react-navigation/native`, no `expo-router`) para
+ * refrescar el inventario cada vez que la pestaña gana el foco — por ejemplo,
+ * tras crear un nuevo equipo desde la pantalla modal `nuevo-hardware`.
+ *
+ * ### Filtrado local
+ * El `useMemo` `filtered` combina los cuatro criterios (búsqueda + estado +
+ * categoría + precio) sobre los datos del store, sin peticiones adicionales
+ * a la API. El contador `activeFilterCount` muestra en el botón cuántos
+ * filtros están activos.
+ *
+ * ### Lista virtualizada
+ * Se usa `FlashList` de `@shopify/flash-list` en lugar de `FlatList` por su
+ * mayor rendimiento en listas largas con celdas de altura uniforme.
+ *
+ * ### Alquiler
+ * Al pulsar un equipo disponible se abre `RentalModal`. Los equipos con
+ * estado distinto a `AVAILABLE` tienen `onPress` silenciado para evitar
+ * que el usuario intente alquilar un equipo no disponible.
+ */
 export default function InventarioScreen() {
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];
@@ -76,14 +126,22 @@ export default function InventarioScreen() {
   const user = useAuthStore((s) => s.user);
 
   const [search, setSearch] = useState('');
+  /** Controla si el panel de filtros está desplegado. */
   const [filtersOpen, setFiltersOpen] = useState(false);
+  /** Equipo seleccionado para abrir el modal de alquiler; `null` lo cierra. */
   const [selectedHardware, setSelectedHardware] = useState<Hardware | null>(null);
   const [statusFilter, setStatusFilter] = useState<HardwareStatus | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<HardwareCategory | 'all'>('all');
   const [priceFilter, setPriceFilter] = useState<PriceRange>('all');
 
+  /** Número de filtros activos (distintos de 'all'). Se muestra en el badge del botón. */
   const activeFilterCount = [statusFilter, categoryFilter, priceFilter].filter(f => f !== 'all').length;
 
+  /**
+   * Obtiene el inventario completo desde la API y lo persiste en el store.
+   * Se envuelve en `useCallback` para que `useFocusEffect` no lo recree
+   * en cada render, sino solo cuando `token` cambia.
+   */
   const fetchHardware = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -101,8 +159,13 @@ export default function InventarioScreen() {
     }
   }, [token]);
 
+  /** Refresca el inventario cada vez que la pestaña obtiene el foco. */
   useFocusEffect(useCallback(() => { fetchHardware(); }, [fetchHardware]));
 
+  /**
+   * Lista de equipos filtrada por los cuatro criterios combinados.
+   * Solo se recalcula cuando cambia alguno de sus inputs.
+   */
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return items.filter((h) => {

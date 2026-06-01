@@ -1,43 +1,71 @@
-"use client"; 
+"use client";
 
 import { useState } from 'react';
-import Image from 'next/image'; 
-import type { Hardware } from '../types/hardware'; 
-import { StatusBadge } from '../components/StatusBadge'; 
-import { RentalModal } from '../components/RentalModal'; 
+import Image from 'next/image';
+import type { Hardware } from '../types/hardware';
+import { StatusBadge } from '../components/StatusBadge';
+import { RentalModal } from '../components/RentalModal';
 
+/**
+ * Mapa de rutas de icono por categoría de equipo.
+ * Los iconos son imágenes estáticas en `/public/assets/`.
+ */
 const iconMap: Record<string, string> = {
   laptop: '/assets/Laptop_icon.png',
   tablet: '/assets/Tablet_icon.png',
   peripheral: '/assets/Peripheral_icon.png',
 };
 
+/**
+ * Props del componente `HardwareCard`.
+ */
 interface HardwareCardProps {
+  /** Datos del equipo a mostrar (model, specs, category, dailyRate, status). */
   item: Hardware;
+  /**
+   * Callback invocado tras confirmar un alquiler exitoso desde el modal.
+   * Normalmente llama a `refetch` del hook padre para actualizar la lista.
+   */
   onRentalSuccess: () => void;
 }
 
+/**
+ * Tarjeta visual para un equipo del inventario.
+ *
+ * Muestra el icono de categoría, el nombre del modelo, las especificaciones,
+ * la tarifa diaria y un badge de estado. El botón "Gestionar" abre el
+ * `RentalModal` solo si el equipo está disponible; en caso contrario
+ * permanece deshabilitado visualmente.
+ *
+ * ### Animaciones
+ * La tarjeta escala ligeramente al hacer hover y el icono de categoría
+ * crece con `group-hover:scale-110` para dar sensación de interactividad.
+ *
+ * @param item           - Datos del equipo.
+ * @param onRentalSuccess - Función a llamar cuando el alquiler se confirma con éxito.
+ */
 export const HardwareCard = ({ item, onRentalSuccess }: HardwareCardProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const categoryKey = item.category?.toLowerCase() || 'peripheral';
   const selectedIcon = iconMap[categoryKey] || '/assets/Peripheral_icon.png';
+  /** Verdadero si el equipo puede alquilarse en este momento. */
   const isAvailable = item.status?.toLowerCase() === 'available';
 
   return (
     <>
-      <div className="group relative bg-white rounded-[1.8rem] shadow-lg shadow-blue-200/20 border border-white 
-                      transition-all duration-300 ease-in-out flex flex-col h-full overflow-hidden 
+      <div className="group relative bg-white rounded-[1.8rem] shadow-lg shadow-blue-200/20 border border-white
+                      transition-all duration-300 ease-in-out flex flex-col h-full overflow-hidden
                       hover:scale-[1.02] hover:bg-[#EDF2FF] hover:shadow-2xl hover:shadow-[#3D70DD]/20 hover:border-blue-100">
-        
+
         {/* Área del Icono */}
         <div className="pt-8 px-8 flex justify-between items-start">
           <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center p-3 shadow-sm border border-slate-50 transition-transform duration-300 group-hover:scale-110">
             {/* Cambiamos img por Image de Next para mejor rendimiento */}
-            <Image 
-              src={selectedIcon} 
-              alt={item.category} 
-              width={64} 
+            <Image
+              src={selectedIcon}
+              alt={item.category}
+              width={64}
               height={64}
               className="w-full h-full object-contain drop-shadow-md"
             />
@@ -61,16 +89,16 @@ export const HardwareCard = ({ item, onRentalSuccess }: HardwareCardProps) => {
                 {item.dailyRate}€<span className="text-[10px] text-slate-400 font-bold ml-1">/DÍA</span>
               </span>
             </div>
-            
-            <button 
+
+            <button
               disabled={!isAvailable}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsModalOpen(true);
               }}
               className={`px-5 py-3 rounded-xl transition-all transform active:scale-95 flex items-center gap-2 font-bold text-sm ${
-                isAvailable 
-                  ? 'bg-[#3D70DD] text-white hover:bg-[#2F5FC7] shadow-lg shadow-blue-100' 
+                isAvailable
+                  ? 'bg-[#3D70DD] text-white hover:bg-[#2F5FC7] shadow-lg shadow-blue-100'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
               }`}
             >
@@ -84,11 +112,11 @@ export const HardwareCard = ({ item, onRentalSuccess }: HardwareCardProps) => {
       </div>
 
       {isModalOpen && (
-        <RentalModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          item={item} 
-          onSuccess={onRentalSuccess} 
+        <RentalModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          item={item}
+          onSuccess={onRentalSuccess}
         />
       )}
     </>

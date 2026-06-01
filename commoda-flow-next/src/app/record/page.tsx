@@ -2,19 +2,42 @@
 
 import React, { useState, useMemo } from 'react';
 import { RentalTable } from '../../components/RentalTable';
-import { useFetchRentals } from '../../hooks/useFetchRentals'; 
-import { useAuth } from '../../context/AuthContext'; 
+import { useFetchRentals } from '../../hooks/useFetchRentals';
+import { useAuth } from '../../context/AuthContext';
 import { FilterBar } from '@/components/FilterBar';
 import { SearchBar } from '@/components/SearchBar';
-import type { Rental } from '@/types/rental.types'; 
+import type { Rental } from '@/types/rental.types';
 import {BackButton} from '@/components/BackButton';
 
+/**
+ * Página de actividad del usuario (`/record`).
+ *
+ * Muestra dos secciones diferenciadas del historial de alquileres:
+ *
+ * ### 1. Alquileres en curso
+ * Tarjetas con los alquileres activos (`status === 'RENTED'`) del usuario.
+ * Cada tarjeta incluye un botón "Anular / Devolver" que llama a
+ * `PATCH /api/rentals/[id]/return` y actualiza la lista.
+ *
+ * ### 2. Historial de alquileres
+ * Tabla con todos los alquileres devueltos (`status === 'RETURNED'`),
+ * filtrable por categoría, estado, precio y texto libre.
+ *
+ * ### Estado de filtros
+ * - `searchTerm`  → texto libre sobre el modelo del equipo.
+ * - `statusFilter` → estado del alquiler en el historial.
+ * - `priceRange`  → franja de precio diario del equipo.
+ * - `category`    → categoría del equipo.
+ *
+ * El filtrado se realiza con `useMemo` sobre `historyRentals` para
+ * recalcular solo cuando cambian los filtros o los datos.
+ */
 export default function RecordPage() {
-  const { user } = useAuth(); 
+  const { user } = useAuth();
   const userId = user?.id;
-  
+
   const { data, loading: isLoading, error, refetch } = useFetchRentals(userId);
-  
+
   // 3. Forzamos a que 'data' use tu tipo Rental
   const rentals = (data || []) as Rental[];
 
@@ -27,15 +50,16 @@ export default function RecordPage() {
   const [priceRange, setPriceRange] = useState('all');
   const [category, setCategory] = useState('all');
 
+  /** Historial filtrado reactivamente según los controles del panel de filtros. */
   const filteredHistory = useMemo(() => {
     return historyRentals.filter((rental) => {
       const item = rental.hardware;
       const price = item?.dailyRate || 0;
-      
+
       const matchesName = (item?.model || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || rental.status === statusFilter;
       const matchesCategory = category === 'all' || item?.category === category;
-      
+
       let matchesPrice = true;
       if (priceRange === 'under25') matchesPrice = price < 25;
       else if (priceRange === '25-50') matchesPrice = price >= 25 && price <= 50;
@@ -46,7 +70,13 @@ export default function RecordPage() {
     });
   }, [historyRentals, searchTerm, statusFilter, category, priceRange]);
 
-  // 3. FUNCIÓN PARA ANULAR/DEVOLVER ALQUILER (Frontend)
+  /**
+   * Procesa la devolución de un equipo alquilado.
+   * Muestra un diálogo de confirmación nativo del navegador antes de
+   * llamar al endpoint para evitar devoluciones accidentales.
+   *
+   * @param rentalId - UUID del alquiler a cerrar.
+   */
   const handleReturnEquipment = async (rentalId: string) => {
     const confirmReturn = window.confirm("¿Estás seguro de que deseas anular/devolver este equipo?");
     if (!confirmReturn) return;
@@ -74,7 +104,7 @@ export default function RecordPage() {
   return (
     <>
       <BackButton />
-      
+
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-12">
         <header>
           <h1 className="text-4xl font-black text-[#1A263C] tracking-tight">
@@ -89,7 +119,7 @@ export default function RecordPage() {
             <span className="w-2 h-2 rounded-full bg-[#2BB673] animate-pulse"></span>
             Alquileres en curso ({activeRentals.length})
           </h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {isLoading ? (
                <div className="p-6 text-slate-400 text-sm">Cargando...</div>
@@ -105,7 +135,7 @@ export default function RecordPage() {
                       </p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleReturnEquipment(rental.id)}
                     className="bg-[#1A263C] text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-red-500 transition-colors active:scale-95"
                   >
@@ -126,10 +156,10 @@ export default function RecordPage() {
         {/* --- SECCIÓN: HISTORIAL Y FILTROS --- */}
         <section className="space-y-6">
           <h2 className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Historial de alquileres</h2>
-          
+
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <div className="flex-1">
-              <FilterBar 
+              <FilterBar
                 category={category} setCategory={setCategory}
                 priceRange={priceRange} setPriceRange={setPriceRange}
                 status={statusFilter} setStatus={setStatusFilter}

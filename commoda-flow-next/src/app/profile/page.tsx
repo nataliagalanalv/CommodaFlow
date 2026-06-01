@@ -8,6 +8,10 @@ import { toast } from 'sonner';
 
 // ── Iconos SVG inline ─────────────────────────────────────────────────────────
 
+/**
+ * Icono de ojo abierto para el toggle de visibilidad de contraseña.
+ * Implementado como SVG inline para no añadir dependencias externas.
+ */
 const EyeIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -15,6 +19,10 @@ const EyeIcon = () => (
   </svg>
 );
 
+/**
+ * Icono de ojo tachado para el toggle de visibilidad de contraseña (estado oculto).
+ * Implementado como SVG inline para no añadir dependencias externas.
+ */
 const EyeOffIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -22,6 +30,29 @@ const EyeOffIcon = () => (
   </svg>
 );
 
+/**
+ * Página de perfil de usuario (`/profile`).
+ *
+ * Permite al usuario autenticado actualizar su nombre y contraseña.
+ * Incluye una vista previa reactiva del perfil (`UserProfileCard`) que
+ * refleja los cambios del formulario en tiempo real antes de guardar.
+ *
+ * ### Seguridad de contraseña
+ * - La contraseña solo se envía si el usuario ha rellenado el campo.
+ * - Se requiere confirmación de contraseña para evitar errores tipográficos.
+ * - `pwdMismatch` desactiva el botón de envío y muestra un indicador inline
+ *   en cuanto hay discrepancia, antes de llegar al backend.
+ * - El servidor hashea la contraseña con bcrypt antes de almacenarla;
+ *   el cliente siempre envía texto plano sobre HTTPS.
+ *
+ * ### Estado local
+ * - `name`                → nombre editable del usuario.
+ * - `password`            → nueva contraseña (vacío = no cambiar).
+ * - `confirmPassword`     → repetición de la nueva contraseña.
+ * - `showPassword`        → toggle de visibilidad del campo de nueva contraseña.
+ * - `showConfirmPassword` → toggle de visibilidad del campo de confirmación.
+ * - `loading`             → verdadero mientras la petición PATCH está en curso.
+ */
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
 
@@ -32,9 +63,17 @@ export default function ProfilePage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Indicador inline: solo cuando confirmar tiene texto y no coincide
+  /** Verdadero cuando el campo de confirmación tiene texto y no coincide con `password`. */
   const pwdMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
+  /**
+   * Envía los cambios al servidor vía `PATCH /api/users/[id]`.
+   * Valida la coincidencia de contraseñas antes de hacer la petición.
+   * Tras guardar correctamente, actualiza el contexto global y limpia
+   * los campos de contraseña.
+   *
+   * @param e - Evento del formulario (necesario para `e.preventDefault()`).
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;

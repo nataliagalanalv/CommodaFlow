@@ -3,13 +3,41 @@ import { useMemo } from 'react';
 import { useFetchHardware } from '../hooks/useFetchHardware';
 import { HardwareCard } from './HardwareCard';
 
+/**
+ * Props del componente `InventoryList`.
+ * Todos los filtros se reciben desde la página padre para mantener
+ * el estado centralizado en `HomePage` y permitir que otros componentes
+ * (como `FilterBar` y `SearchBar`) compartan el mismo estado.
+ */
 interface InventoryListProps {
+  /** Texto libre para filtrar por modelo o especificaciones. */
   search: string;
-  category: string;      
-  priceRange: string;    
+  /** Categoría seleccionada (`'all'` | `'LAPTOP'` | `'TABLET'` | `'PERIPHERAL'`). */
+  category: string;
+  /** Franja de precio diario (`'all'` | `'under25'` | `'25-50'` | `'50-100'` | `'over100'`). */
+  priceRange: string;
+  /** Estado de disponibilidad (`'all'` | `'available'` | `'rented'`). */
   status: string;
 }
 
+/**
+ * Componente principal del inventario de hardware.
+ *
+ * Obtiene el catálogo completo de equipos mediante `useFetchHardware` y aplica
+ * los filtros recibidos como props con `useMemo` para recalcular solo cuando
+ * cambian los datos o los criterios de filtrado.
+ *
+ * ### Estados de renderizado
+ * - **Cargando**: spinner centralizado con animación pulse en el texto.
+ * - **Error**: banner de error con botón "Reintentar conexión".
+ * - **Vacío filtrado**: mensaje de "sin resultados" con opción de restablecer filtros.
+ * - **Éxito**: grid responsivo de `HardwareCard` (1 col → 4 cols según ancho).
+ *
+ * @param search     - Texto de búsqueda libre.
+ * @param category   - Filtro de categoría de equipo.
+ * @param priceRange - Filtro de rango de precio diario.
+ * @param status     - Filtro de estado de disponibilidad.
+ */
 export function InventoryList({ search = '', category = 'all', priceRange = 'all', status = 'all' }: InventoryListProps) {
   const { data, loading, error, refetch } = useFetchHardware();
 
@@ -17,9 +45,9 @@ export function InventoryList({ search = '', category = 'all', priceRange = 'all
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const searchTerm = search.toLowerCase();
-      
+
       // Filtro de Texto
-      const matchesSearch = 
+      const matchesSearch =
         item.model.toLowerCase().includes(searchTerm) ||
         item.specs.toLowerCase().includes(searchTerm);
 
@@ -42,7 +70,7 @@ export function InventoryList({ search = '', category = 'all', priceRange = 'all
     });
   }, [data, search, category, priceRange, status]);
 
- if (loading) {
+  if (loading) {
     return (
       <div className="flex flex-col justify-center items-center p-20 space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-[#3D70DD]"></div>
@@ -60,7 +88,7 @@ export function InventoryList({ search = '', category = 'all', priceRange = 'all
         <span className="text-5xl mb-4 block">📡</span>
         <h3 className="text-[#1A263C] text-xl font-black mb-2">Error de Conexión</h3>
         <p className="text-red-600 font-medium mb-6">{error}</p>
-        <button 
+        <button
           onClick={refetch}
           className="px-8 py-3 bg-[#1A263C] text-white rounded-2xl font-bold hover:bg-black transition-all active:scale-95 shadow-lg shadow-red-200"
         >
@@ -82,9 +110,9 @@ export function InventoryList({ search = '', category = 'all', priceRange = 'all
             {filteredData.length} equipos encontrados según tus preferencias.
           </p>
         </div>
-        
-        <button 
-          onClick={refetch} 
+
+        <button
+          onClick={refetch}
           className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#3D70DD] hover:text-[#1A263C] transition-all bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-100 active:scale-95"
         >
           <svg className="w-4 h-4 group-active:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,8 +127,8 @@ export function InventoryList({ search = '', category = 'all', priceRange = 'all
           <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">
             No hay equipos que coincidan con los filtros seleccionados
           </p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="mt-4 text-[#3D70DD] text-[10px] font-bold uppercase tracking-widest hover:underline"
           >
             Restablecer todo
@@ -109,10 +137,10 @@ export function InventoryList({ search = '', category = 'all', priceRange = 'all
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {filteredData.map((item) => (
-            <HardwareCard 
-              key={item.id} 
-              item={item} 
-              onRentalSuccess={refetch} 
+            <HardwareCard
+              key={item.id}
+              item={item}
+              onRentalSuccess={refetch}
             />
           ))}
         </div>

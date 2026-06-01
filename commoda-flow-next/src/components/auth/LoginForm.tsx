@@ -7,6 +7,10 @@ import Image from 'next/image';
 
 // ── Iconos SVG inline (sin dependencias externas) ─────────────────────────────
 
+/**
+ * Icono de ojo abierto para el toggle de visibilidad de contraseña.
+ * Inline SVG para no añadir dependencias de iconos externas.
+ */
 const EyeIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -14,6 +18,10 @@ const EyeIcon = () => (
   </svg>
 );
 
+/**
+ * Icono de ojo tachado para el toggle de visibilidad de contraseña (estado oculto).
+ * Inline SVG para no añadir dependencias de iconos externas.
+ */
 const EyeOffIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -21,6 +29,31 @@ const EyeOffIcon = () => (
   </svg>
 );
 
+/**
+ * Formulario combinado de login y registro para la aplicación web.
+ *
+ * Presenta dos pestañas ("Acceso" / "Crear cuenta") que alternan entre el
+ * formulario de inicio de sesión y el de registro en la misma tarjeta,
+ * manteniendo el estado de cada uno de forma independiente.
+ *
+ * ### Login
+ * - Email + contraseña con toggle de visibilidad.
+ * - Llama a `POST /api/auth/login`.
+ * - Redirige a `/` tras autenticación exitosa.
+ *
+ * ### Registro
+ * - Nombre, email, contraseña y confirmación de contraseña.
+ * - Validación inline: el campo de confirmación muestra borde rojo y
+ *   mensaje de error en tiempo real si las contraseñas no coinciden.
+ * - El botón de envío se deshabilita mientras hay discrepancia (`pwdMismatch`).
+ * - Flujo dos pasos: `POST /api/auth/register` → `POST /api/auth/login`
+ *   para que el nuevo usuario quede autenticado automáticamente.
+ *
+ * ### Seguridad de contraseña
+ * `pwdMismatch` se activa únicamente cuando el campo de confirmación tiene
+ * texto Y no coincide con la contraseña, evitando falsos positivos mientras
+ * el usuario aún no ha empezado a escribir la confirmación.
+ */
 export const LoginForm: React.FC = () => {
   const { login } = useAuth();
 
@@ -38,15 +71,23 @@ export const LoginForm: React.FC = () => {
   const [showRegisterConfirmPwd, setShowRegisterConfirmPwd] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  /** Verdadero cuando se muestra el tab de "Acceso"; falso cuando es "Crear cuenta". */
   const [isLogin, setIsLogin] = useState(true);
 
-  // Indicador inline: solo se activa cuando el campo confirmar tiene texto
+  /** Verdadero solo cuando el campo de confirmación tiene texto y no coincide con la contraseña. */
   const pwdMismatch =
     registerConfirmPassword.length > 0 &&
     registerPassword !== registerConfirmPassword;
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
+  /**
+   * Maneja el envío del formulario de login.
+   * Llama a `POST /api/auth/login` y, si tiene éxito, actualiza el contexto
+   * de autenticación y redirige al inventario.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -71,6 +112,14 @@ export const LoginForm: React.FC = () => {
     }
   };
 
+  /**
+   * Maneja el envío del formulario de registro.
+   * Valida la coincidencia de contraseñas, llama a `POST /api/auth/register`
+   * y, si tiene éxito, hace login automático para que el usuario entre
+   * directamente sin necesidad de volver a autenticarse.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 

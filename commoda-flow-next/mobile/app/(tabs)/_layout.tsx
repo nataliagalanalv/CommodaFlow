@@ -4,6 +4,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/theme';
 import { useAuthStore } from '../../store/authStore';
 
+/**
+ * Layout del grupo de pestañas `(tabs)`.
+ *
+ * Define la barra de navegación inferior con tres pestañas principales:
+ * - **Inventario** → listado completo de equipos con búsqueda y filtros.
+ * - **Alquileres** → alquileres activos del usuario e historial.
+ * - **Perfil** → edición de datos y cierre de sesión.
+ *
+ * ### Protección de acceso
+ * Si el usuario no está autenticado redirige a `/(auth)/login`. El flag
+ * `isHydrated` evita una redirección prematura mientras Zustand todavía
+ * está rehidratando el estado desde AsyncStorage (devuelve `null` hasta
+ * que la rehidratación completa).
+ *
+ * ### Tema adaptativo
+ * Los colores de la barra de pestañas y los headers se derivan del tema
+ * activo (claro/oscuro), garantizando coherencia visual con el sistema.
+ *
+ * @remarks
+ * Los íconos usan la variante `*-outline` cuando la pestaña está inactiva
+ * y la variante sólida cuando está activa, siguiendo las convenciones de
+ * diseño de Ionicons para indicar la selección actual.
+ */
 export default function TabsLayout() {
   const { isAuthenticated, isHydrated } = useAuthStore();
   const scheme = useColorScheme();

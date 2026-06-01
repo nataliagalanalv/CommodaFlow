@@ -15,12 +15,20 @@ import { Rental, RentalStatus } from '../../types';
 
 // ── Tipos de filtro ────────────────────────────────────────────────────────────
 
+/** Rangos de precio diario disponibles en el filtro del historial. */
 type PriceRange = 'all' | 'under25' | '25-50' | '50-100' | 'over100';
+/** Estado de alquiler seleccionable en el filtro de historial. */
 type HistoryStatus = RentalStatus | 'all';
+/** Categoría de equipo seleccionable en el filtro de historial. */
 type CategoryFilter = 'LAPTOP' | 'TABLET' | 'PERIPHERAL' | 'all';
 
 // ── Opciones de filtro ─────────────────────────────────────────────────────────
 
+/**
+ * Opciones del filtro de estado aplicado al historial.
+ * Solo incluye estados no activos (`RETURNED`, `OVERDUE`, `COMPLETED`),
+ * ya que los alquileres `RENTED` se muestran aparte en la sección superior.
+ */
 const HISTORY_STATUS_OPTIONS: { value: HistoryStatus; label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'RETURNED', label: 'Devuelto' },
@@ -28,6 +36,7 @@ const HISTORY_STATUS_OPTIONS: { value: HistoryStatus; label: string }[] = [
   { value: 'COMPLETED', label: 'Completado' },
 ];
 
+/** Opciones del filtro de categoría del equipo alquilado. */
 const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'LAPTOP', label: 'Portátil' },
@@ -35,6 +44,7 @@ const CATEGORY_OPTIONS: { value: CategoryFilter; label: string }[] = [
   { value: 'PERIPHERAL', label: 'Periférico' },
 ];
 
+/** Opciones del filtro de precio diario del equipo alquilado. */
 const PRICE_OPTIONS: { value: PriceRange; label: string }[] = [
   { value: 'all', label: 'Todos' },
   { value: 'under25', label: '<25€' },
@@ -45,17 +55,26 @@ const PRICE_OPTIONS: { value: PriceRange; label: string }[] = [
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
+/** Etiquetas legibles para cada estado de alquiler. */
 const STATUS_LABEL: Record<string, string> = {
   RENTED: 'Activo', RETURNED: 'Devuelto', OVERDUE: 'Vencido',
   PENDING: 'Pendiente', COMPLETED: 'Completado',
 };
 
+/** Mapa de categoría → nombre del ícono Ionicons correspondiente. */
 const CATEGORY_ICON: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   LAPTOP: 'laptop-outline',
   TABLET: 'tablet-portrait-outline',
   PERIPHERAL: 'hardware-chip-outline',
 };
 
+/**
+ * Determina si la tarifa diaria encaja dentro del rango de precio indicado.
+ *
+ * @param rate  - Precio diario del equipo en euros.
+ * @param range - Rango seleccionado en el filtro.
+ * @returns `true` si el precio pertenece al rango; `false` en caso contrario.
+ */
 function matchesPrice(rate: number, range: PriceRange): boolean {
   if (range === 'all') return true;
   if (range === 'under25') return rate < 25;
@@ -66,6 +85,15 @@ function matchesPrice(rate: number, range: PriceRange): boolean {
 
 // ── FilterChips (idéntico al de inventario) ────────────────────────────────────
 
+/**
+ * Chips de filtro en fila horizontal deslizable.
+ * El chip activo se muestra con el color primario; el resto con borde neutro.
+ *
+ * @param options  - Pares `{ value, label }` a renderizar.
+ * @param selected - Valor actualmente activo.
+ * @param onSelect - Callback al pulsar un chip.
+ * @param theme    - Paleta de colores del tema activo.
+ */
 function FilterChips<T extends string>({
   options, selected, onSelect, theme,
 }: { options: { value: T; label: string }[]; selected: T; onSelect: (v: T) => void; theme: Theme }) {
@@ -93,6 +121,22 @@ function FilterChips<T extends string>({
 
 // ── Tarjeta alquiler activo ────────────────────────────────────────────────────
 
+/**
+ * Tarjeta para un alquiler con estado `RENTED` (en curso).
+ *
+ * Muestra el modelo del equipo, el rango de fechas y un indicador visual
+ * del tiempo restante codificado por color:
+ * - **Rojo** — plazo vencido (días negativos).
+ * - **Amarillo** — vence en los próximos 2 días.
+ * - **Gris** — más de 2 días restantes.
+ *
+ * Incluye un botón "Devolver" que delega en `onReturn` para que el
+ * componente padre gestione la confirmación y la llamada a la API.
+ *
+ * @param rental   - Alquiler activo a mostrar.
+ * @param onReturn - Callback invocado al pulsar "Devolver", recibe el ID del alquiler.
+ * @param theme    - Paleta de colores del tema activo.
+ */
 function ActiveCard({ rental, onReturn, theme }: {
   rental: Rental; onReturn: (id: string) => void; theme: Theme;
 }) {
@@ -148,6 +192,15 @@ function ActiveCard({ rental, onReturn, theme }: {
 
 // ── Tarjeta historial ──────────────────────────────────────────────────────────
 
+/**
+ * Tarjeta compacta para un alquiler finalizado (historial).
+ *
+ * Muestra el modelo, las fechas de inicio y fin, el estado (con badge
+ * de color semitransparente) y el coste total del alquiler.
+ *
+ * @param rental - Alquiler del historial a mostrar.
+ * @param theme  - Paleta de colores del tema activo.
+ */
 function HistoryCard({ rental, theme }: { rental: Rental; theme: Theme }) {
   const statusColor = StatusColors[rental.status] ?? theme.textSecondary;
   const cat = rental.hardware?.category ?? '';
@@ -183,6 +236,31 @@ function HistoryCard({ rental, theme }: { rental: Rental; theme: Theme }) {
 
 // ── Pantalla principal ─────────────────────────────────────────────────────────
 
+/**
+ * Pantalla de actividad de alquileres del usuario autenticado.
+ *
+ * Divide el contenido en dos secciones:
+ * - **Alquileres en curso** — equipos actualmente alquilados (`status === 'RENTED'`),
+ *   con botón de devolución que lanza una alerta de confirmación nativa.
+ * - **Historial** — todos los alquileres finalizados, filtrables por estado,
+ *   categoría y precio, y buscables por nombre de equipo.
+ *
+ * ### Fetch y refresco
+ * Carga los alquileres del usuario con `GET /api/rentals?userId=<id>` al ganar
+ * el foco (vía `useFocusEffect`). Después de registrar una devolución, llama de
+ * nuevo a `fetchRentals` para que el alquiler pase de la sección activa al
+ * historial sin navegar fuera de la pestaña.
+ *
+ * ### Devolución
+ * `handleReturn` muestra un `Alert.alert` nativo antes de enviar el `PATCH
+ * /api/rentals/:id/return`. Tras el éxito dispara `expo-haptics` con feedback
+ * de tipo `Success` para ofrecer confirmación táctil al usuario.
+ *
+ * ### Datos derivados
+ * `activeRentals` y `historyRentals` son `useMemo` calculados a partir del
+ * array `items` del store. `historyRentals` aplica además los cuatro filtros
+ * activos (búsqueda + estado + categoría + precio).
+ */
 export default function AlquileresScreen() {
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];
@@ -192,15 +270,22 @@ export default function AlquileresScreen() {
   const user = useAuthStore((s) => s.user);
 
   const [search, setSearch] = useState('');
+  /** Controla si el panel de filtros del historial está desplegado. */
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<HistoryStatus>('all');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [priceFilter, setPriceFilter] = useState<PriceRange>('all');
 
+  /** Número de filtros activos. Se muestra en el badge del botón de filtros. */
   const activeFilterCount = [statusFilter, categoryFilter, priceFilter].filter(f => f !== 'all').length;
 
   // ── Fetch ────────────────────────────────────────────────────────────────────
 
+  /**
+   * Carga los alquileres del usuario autenticado desde la API.
+   * Solo se ejecuta si `user.id` está disponible para evitar peticiones
+   * anónimas en caso de que el store no esté hidratado aún.
+   */
   const fetchRentals = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
@@ -219,10 +304,20 @@ export default function AlquileresScreen() {
     }
   }, [token, user?.id]);
 
+  /** Refresca los alquileres cada vez que la pestaña obtiene el foco. */
   useFocusEffect(useCallback(() => { fetchRentals(); }, [fetchRentals]));
 
   // ── Devolución ───────────────────────────────────────────────────────────────
 
+  /**
+   * Solicita confirmación nativa y registra la devolución de un equipo.
+   *
+   * Si el usuario confirma, envía `PATCH /api/rentals/:id/return` y recarga
+   * los alquileres para que el equipo se mueva a la sección de historial.
+   * En caso de éxito también activa feedback háptico de tipo `Success`.
+   *
+   * @param rentalId - Identificador del alquiler a devolver.
+   */
   async function handleReturn(rentalId: string) {
     Alert.alert('Registrar devolución', '¿Confirmas la devolución del equipo?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -247,11 +342,16 @@ export default function AlquileresScreen() {
 
   // ── Datos derivados ──────────────────────────────────────────────────────────
 
+  /** Alquileres con estado `RENTED`: se muestran en la sección de activos. */
   const activeRentals = useMemo(
     () => items.filter((r) => r.status === 'RENTED'),
     [items]
   );
 
+  /**
+   * Alquileres finalizados filtrados por los cuatro criterios activos.
+   * Se excluyen los `RENTED` que ya aparecen en `activeRentals`.
+   */
   const historyRentals = useMemo(() => {
     const q = search.toLowerCase();
     return items

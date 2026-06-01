@@ -1,8 +1,24 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '../../../../../lib/prisma'; 
+import { prisma } from '../../../../../lib/prisma';
 import { Status } from '@prisma/client';
 
-
+/**
+ * `PATCH /api/rentals/[id]/return`
+ *
+ * Procesa la devolución de un equipo alquilado.
+ * Opera en una transacción de Prisma para garantizar atomicidad:
+ * - Marca el alquiler como `RETURNED`.
+ * - Libera el equipo cambiando su estado a `AVAILABLE`.
+ *
+ * Si cualquiera de los dos pasos falla, la transacción se revierte y
+ * ambos registros quedan en su estado original.
+ *
+ * @param request - Petición entrante (el body no se usa; toda la info viene en la URL).
+ * @param params  - Parámetros de ruta dinámicos; `id` es el UUID del alquiler a cerrar.
+ *
+ * @returns `200 { message }` devolución correcta |
+ *          `404` alquiler no encontrado | `500` error interno.
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // 1. Declaramos params como Promise
@@ -23,7 +39,7 @@ export async function PATCH(
     await prisma.$transaction([
       prisma.rentals.update({
         where: { id: rentalId },
-        data: { status: 'RETURNED' } 
+        data: { status: 'RETURNED' }
       }),
       prisma.hardware.update({
         where: { id: rental.hardwareId },

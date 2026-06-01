@@ -9,6 +9,36 @@ import { useAuthStore } from '../../store/authStore';
 import { Colors, Theme, Typography, Spacing, Radius } from '../../constants/theme';
 import { API_URL } from '../../constants/api';
 
+/**
+ * Pantalla de perfil del usuario autenticado.
+ *
+ * Permite visualizar y editar los datos de la cuenta:
+ * - **Nombre completo** — campo de texto editable.
+ * - **Contraseña** — sección colapsable con dos campos (nueva + confirmación)
+ *   y toggle de visibilidad mediante ícono de ojo para cada uno.
+ *
+ * ### Validación de contraseña
+ * `pwdMismatch` es `true` cuando el campo de confirmación tiene texto y no
+ * coincide con el de nueva contraseña. En ese estado el botón "Guardar" se
+ * deshabilita y se tiñe con `theme.border` para indicar que la acción no
+ * está disponible. El campo de confirmación muestra su borde en `theme.danger`.
+ *
+ * ### Envío del formulario
+ * `handleSave` construye dinámicamente el cuerpo del `PATCH /api/users/:id`:
+ * - Siempre incluye `name`.
+ * - Solo incluye `password` si el usuario ha rellenado el campo — esto
+ *   permite actualizar el nombre sin cambiar la contraseña.
+ * Tras guardar, limpia los campos de contraseña y cierra la sección colapsable.
+ *
+ * ### Avatar generado
+ * Las iniciales se calculan a partir del nombre (`name.split(' ').map(n => n[0])`),
+ * tomando hasta dos caracteres para el círculo de avatar.
+ *
+ * ### Cierre de sesión
+ * `handleLogout` muestra un `Alert.alert` nativo de confirmación antes de
+ * llamar a `logout()` del store, que limpia usuario y token del estado y de
+ * AsyncStorage, provocando la redirección automática a `/(auth)/login`.
+ */
 export default function PerfilScreen() {
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];
@@ -17,23 +47,31 @@ export default function PerfilScreen() {
   const [name, setName] = useState(user?.name ?? '');
 
   // ── Contraseña ─────────────────────────────────────────────────────────────
+  /** Controla si la sección de cambio de contraseña está expandida. */
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  /** Controla la visibilidad del texto en el campo "Nueva contraseña". */
   const [showPassword, setShowPassword] = useState(false);
+  /** Controla la visibilidad del texto en el campo "Confirmar contraseña". */
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mismatch solo cuando confirmar tiene texto y no coincide
+  /** `true` solo cuando el campo de confirmación tiene texto y no coincide con la nueva contraseña. */
   const pwdMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
+  /** Iniciales del usuario (máx. 2 caracteres) para el avatar generado. */
   const initials = name
     ? name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
+  /**
+   * Alterna la visibilidad de la sección de contraseña y limpia todos sus
+   * campos al abrir o cerrar, evitando datos residuales entre sesiones de edición.
+   */
   function togglePasswordSection() {
     setShowPasswordField((v) => !v);
     // Limpia todo al abrir/cerrar la sección
@@ -43,6 +81,14 @@ export default function PerfilScreen() {
     setShowConfirmPassword(false);
   }
 
+  /**
+   * Valida y envía los cambios del perfil a la API.
+   *
+   * El cuerpo del `PATCH` incluye `name` siempre y `password` solo si el
+   * usuario ha escrito algo en ese campo. Tras el éxito, actualiza el store
+   * con `updateUser` para reflejar los cambios en toda la app sin necesidad
+   * de recargar el perfil.
+   */
   async function handleSave() {
     if (!user) return;
     if (!name.trim()) {
@@ -89,6 +135,11 @@ export default function PerfilScreen() {
     }
   }
 
+  /**
+   * Solicita confirmación nativa antes de cerrar la sesión del usuario.
+   * Si el usuario confirma, llama a `logout()` del store, que limpia el
+   * estado y AsyncStorage, desencadenando la redirección a la pantalla de login.
+   */
   function handleLogout() {
     Alert.alert('Cerrar sesión', '¿Seguro que quieres salir?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -246,6 +297,15 @@ export default function PerfilScreen() {
 
 // ── Subcomponente fila de info ─────────────────────────────────────────────────
 
+/**
+ * Fila de información de solo lectura con ícono, etiqueta y valor.
+ * Se usa en la sección "Cuenta" para mostrar email y rol del usuario.
+ *
+ * @param icon  - Nombre del ícono Ionicons a mostrar.
+ * @param label - Etiqueta descriptiva del campo.
+ * @param value - Valor a mostrar en el lado derecho.
+ * @param theme - Paleta de colores del tema activo.
+ */
 function Row({ icon, label, value, theme }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string; value: string; theme: Theme;

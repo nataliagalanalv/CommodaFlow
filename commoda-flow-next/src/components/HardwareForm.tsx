@@ -4,31 +4,74 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import type { HardwareCategory } from '../types/hardware';
 
+/**
+ * Datos del formulario de creación de hardware.
+ * Coincide con los campos requeridos por `hardwareSchema` en el backend.
+ */
 export interface HardwareFormData {
+  /** Nombre comercial del equipo (mínimo 3 caracteres). */
   model: string;
-  category: HardwareCategory; // Cambiamos 'type' por 'category' para ser consistentes
+  /** Tipo de dispositivo según la taxonomía del sistema. */
+  category: HardwareCategory;
+  /** Tarifa de alquiler en euros por día (debe ser > 0). */
   dailyRate: number;
-  specs: string; // Añadimos specs que lo pide tu inventario
+  /** Descripción técnica resumida (mínimo 5 caracteres). */
+  specs: string;
 }
 
+/**
+ * Props del componente `HardwareForm`.
+ */
 interface Props {
+  /**
+   * Callback invocado cuando el formulario pasa la validación.
+   * @param data - Datos validados del nuevo equipo.
+   */
   onSubmit: (data: HardwareFormData) => void;
+  /** Callback para cancelar la creación sin guardar. */
   onCancel: () => void;
 }
 
+/**
+ * Formulario reutilizable para la creación de equipos de hardware.
+ *
+ * Gestiona su propio estado interno y realiza validación local antes de
+ * invocar el callback `onSubmit`. Los errores de campo se muestran inline
+ * bajo el input correspondiente y se limpian al modificar el campo.
+ *
+ * ### Validaciones
+ * - `model`: mínimo 3 caracteres.
+ * - `dailyRate`: debe ser mayor que 0.
+ * - `specs`: mínimo 5 caracteres.
+ *
+ * @remarks
+ * Este componente es un formulario de propósito general; la integración
+ * con la API se realiza en el componente padre que recibe `onSubmit`.
+ *
+ * @param onSubmit - Función del padre para procesar los datos validados.
+ * @param onCancel - Función del padre para cerrar/ocultar el formulario.
+ */
 export const HardwareForm = ({ onSubmit, onCancel }: Props) => {
   const [formData, setFormData] = useState<HardwareFormData>({
     model: '',
-    category: 'laptop', 
+    category: 'laptop',
     dailyRate: 0,
     specs: '',
   });
 
+  /** Errores de validación por campo. Solo contiene entradas para campos con error. */
   const [errors, setErrors] = useState<Partial<Record<keyof HardwareFormData, string>>>({});
 
+  /**
+   * Manejador genérico de cambios en inputs, selects y textareas.
+   * Convierte `dailyRate` a número automáticamente.
+   * Limpia el error del campo modificado para dar feedback inmediato.
+   *
+   * @param e - Evento de cambio del elemento de formulario.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: name === 'dailyRate' ? Number(value) : value
@@ -39,9 +82,15 @@ export const HardwareForm = ({ onSubmit, onCancel }: Props) => {
     }
   };
 
+  /**
+   * Valida todos los campos del formulario.
+   * Actualiza `errors` con los mensajes correspondientes.
+   *
+   * @returns `true` si todos los campos son válidos; `false` si hay algún error.
+   */
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
-    
+
     if (formData.model.trim().length < 3) {
       newErrors.model = 'El nombre del modelo es demasiado corto';
     }
@@ -56,6 +105,12 @@ export const HardwareForm = ({ onSubmit, onCancel }: Props) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Maneja el envío del formulario.
+   * Ejecuta la validación y, si pasa, invoca `onSubmit` con los datos.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
@@ -75,9 +130,9 @@ export const HardwareForm = ({ onSubmit, onCancel }: Props) => {
       {/* Campo Modelo */}
       <div className="space-y-2">
         <label className="text-[10px] font-black uppercase tracking-widest text-[#3D70DD] ml-1">Modelo del equipo</label>
-        <input 
+        <input
           name="model"
-          type="text" 
+          type="text"
           className={`w-full bg-[#F5F8FF] border-2 rounded-2xl px-6 py-4 text-[#1A263C] font-bold outline-none transition-all ${
             errors.model ? 'border-red-200 focus:border-red-400' : 'border-transparent focus:border-[#3D70DD]/20'
           }`}
@@ -91,7 +146,7 @@ export const HardwareForm = ({ onSubmit, onCancel }: Props) => {
       {/* Especificaciones */}
       <div className="space-y-2">
         <label className="text-[10px] font-black uppercase tracking-widest text-[#3D70DD] ml-1">Especificaciones Técnicas</label>
-        <textarea 
+        <textarea
           name="specs"
           rows={2}
           className={`w-full bg-[#F5F8FF] border-2 rounded-2xl px-6 py-4 text-[#1A263C] font-medium outline-none transition-all resize-none ${
@@ -108,7 +163,7 @@ export const HardwareForm = ({ onSubmit, onCancel }: Props) => {
         {/* Categoría */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-[#3D70DD] ml-1">Categoría</label>
-          <select 
+          <select
             name="category"
             className="w-full bg-[#F5F8FF] border-2 border-transparent rounded-2xl px-6 py-4 text-[#1A263C] font-bold outline-none appearance-none"
             value={formData.category}
@@ -123,9 +178,9 @@ export const HardwareForm = ({ onSubmit, onCancel }: Props) => {
         {/* Tarifa */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-[#3D70DD] ml-1">Tarifa (€/Día)</label>
-          <input 
+          <input
             name="dailyRate"
-            type="number" 
+            type="number"
             className={`w-full bg-[#F5F8FF] border-2 rounded-2xl px-6 py-4 text-[#1A263C] font-bold outline-none transition-all ${
               errors.dailyRate ? 'border-red-200' : 'border-transparent focus:border-[#3D70DD]/20'
             }`}

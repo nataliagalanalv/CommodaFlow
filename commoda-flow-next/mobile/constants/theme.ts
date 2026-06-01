@@ -1,9 +1,51 @@
+/**
+ * Definición del sistema de diseño de la aplicación móvil CommodaFlow.
+ *
+ * Todas las constantes de este módulo se usan directamente en los estilos
+ * de los componentes mediante `StyleSheet.create` para garantizar coherencia
+ * visual y facilitar la adaptación al modo oscuro.
+ */
+
+/**
+ * Forma del objeto de tema.
+ * Cada propiedad es un color hexadecimal que se usa en los estilos de los
+ * componentes. Exportado como tipo para que los componentes puedan tipar
+ * correctamente el tema recibido como prop.
+ */
 export type Theme = {
-  background: string; surface: string; primary: string; primaryLight: string;
-  accent: string; text: string; textSecondary: string; border: string;
-  success: string; warning: string; danger: string; card: string;
+  /** Color de fondo principal de las pantallas. */
+  background: string;
+  /** Color de fondo de tarjetas y superficies elevadas. */
+  surface: string;
+  /** Color de acción principal (botones, énfasis, iconos activos). */
+  primary: string;
+  /** Variante clara del color principal para fondos sutiles y badges. */
+  primaryLight: string;
+  /** Color de acento secundario para destacar elementos complementarios. */
+  accent: string;
+  /** Color del texto principal (títulos, etiquetas, contenido). */
+  text: string;
+  /** Color del texto secundario (subtítulos, placeholders, metainformación). */
+  textSecondary: string;
+  /** Color de bordes y separadores. */
+  border: string;
+  /** Color para estados positivos (disponible, devuelto, éxito). */
+  success: string;
+  /** Color para advertencias (próximo a vencer, estado pendiente). */
+  warning: string;
+  /** Color para errores y estados críticos (vencido, mantenimiento). */
+  danger: string;
+  /** Color de fondo de tarjetas de lista. */
+  card: string;
 };
 
+/**
+ * Paletas de color completas para los modos claro y oscuro.
+ * Se selecciona la paleta activa usando `useColorScheme()` de React Native:
+ * ```ts
+ * const theme = Colors[useColorScheme() ?? 'light'];
+ * ```
+ */
 export const Colors: { light: Theme; dark: Theme } = {
   light: {
     background: '#F0F7FF',
@@ -35,6 +77,11 @@ export const Colors: { light: Theme; dark: Theme } = {
   },
 } as const;
 
+/**
+ * Escala tipográfica en píxeles.
+ * Basada en la escala de Tailwind CSS para mantener coherencia con la web.
+ * Uso: `fontSize: Typography.md` en lugar de valores mágicos.
+ */
 export const Typography = {
   xs: 12,
   sm: 14,
@@ -45,6 +92,10 @@ export const Typography = {
   '3xl': 30,
 } as const;
 
+/**
+ * Escala de espaciado en píxeles.
+ * Uso: `padding: Spacing.lg`, `gap: Spacing.sm`, etc.
+ */
 export const Spacing = {
   xs: 4,
   sm: 8,
@@ -55,6 +106,10 @@ export const Spacing = {
   '3xl': 48,
 } as const;
 
+/**
+ * Escala de radios de borde en píxeles.
+ * - `full` → círculo perfecto (usado para avatares y badges redondeados).
+ */
 export const Radius = {
   sm: 6,
   md: 10,
@@ -62,14 +117,20 @@ export const Radius = {
   full: 9999,
 } as const;
 
-// Colores por categoría de hardware
+/**
+ * Colores por categoría de hardware.
+ * Usados para colorear iconos y fondos de badges según el tipo de equipo.
+ */
 export const CategoryColors: Record<string, string> = {
   LAPTOP: '#2563EB',
   TABLET: '#7C3AED',
   PERIPHERAL: '#0891B2',
 };
 
-// Colores por estado de alquiler
+/**
+ * Colores por estado de alquiler y hardware.
+ * Usados para colorear badges de estado en tarjetas de alquiler e inventario.
+ */
 export const StatusColors: Record<string, string> = {
   RENTED: '#D97706',
   RETURNED: '#16A34A',

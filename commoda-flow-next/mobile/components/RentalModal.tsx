@@ -10,62 +10,144 @@ import { Hardware } from '../types';
 import { Colors, Theme, Typography, Spacing, Radius } from '../constants/theme';
 import { API_URL } from '../constants/api';
 
+/**
+ * Props del componente `RentalModal`.
+ */
 interface Props {
+  /** Equipo seleccionado para alquilar. Si es `null`, el modal permanece oculto. */
   item: Hardware | null;
+  /** Callback invocado para cerrar el modal (pulsar "Cancelar", fondo o X). */
   onClose: () => void;
+  /** Callback invocado tras crear el alquiler con éxito; usado para recargar el inventario. */
   onSuccess: () => void;
+  /** ID del usuario autenticado que realizará el alquiler. */
   userId: string;
+  /** Token Bearer para autorizar la petición a la API. */
   token: string;
 }
 
+/**
+ * Devuelve la fecha de hoy en formato ISO `YYYY-MM-DD`.
+ * @returns Fecha actual como string.
+ */
 function todayStr() {
   return new Date().toISOString().split('T')[0];
 }
 
+/**
+ * Devuelve la fecha de mañana en formato ISO `YYYY-MM-DD`.
+ * Se usa como valor inicial de la fecha de fin para garantizar
+ * un mínimo de un día de alquiler.
+ *
+ * @returns Fecha de mañana como string.
+ */
 function tomorrowStr() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   return d.toISOString().split('T')[0];
 }
 
+/**
+ * Calcula el número de días entre dos fechas ISO `YYYY-MM-DD`.
+ * Usa mediodía local (`T00:00:00`) para evitar desfases de zona horaria.
+ *
+ * @param start - Fecha de inicio en formato `YYYY-MM-DD`.
+ * @param end   - Fecha de fin en formato `YYYY-MM-DD`.
+ * @returns Número de días (puede ser negativo si `end` < `start`).
+ */
 function calcDays(start: string, end: string): number {
   const s = new Date(start + 'T00:00:00');
   const e = new Date(end + 'T00:00:00');
   return Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * Convierte un string ISO `YYYY-MM-DD` a un objeto `Date`.
+ * Si la fecha es inválida devuelve la fecha actual como fallback seguro.
+ *
+ * @param str - Fecha en formato `YYYY-MM-DD`.
+ * @returns Objeto `Date` correspondiente.
+ */
 function toDate(str: string): Date {
   const d = new Date(str + 'T00:00:00');
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
+/**
+ * Formatea un string ISO `YYYY-MM-DD` para mostrar al usuario en español.
+ * Ejemplo: `'2025-06-15'` → `'15 jun 2025'`.
+ *
+ * @param str - Fecha en formato `YYYY-MM-DD`.
+ * @returns Fecha formateada o el string original si la fecha es inválida.
+ */
 function formatDisplay(str: string): string {
   const d = new Date(str + 'T00:00:00');
   if (isNaN(d.getTime())) return str;
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+/**
+ * Modal de confirmación de alquiler para la aplicación móvil CommodaFlow.
+ *
+ * Se presenta como un bottom sheet (slide desde abajo, `animationType="slide"`)
+ * con fondo semitransparente oscuro. Pulsar el fondo cierra el modal.
+ *
+ * ### Selección de fechas
+ * Las fechas de inicio y fin se seleccionan con `DateTimePicker` de
+ * `@react-native-community/datetimepicker`, con comportamiento diferenciado:
+ * - **iOS**: picker inline dentro del modal, con botón "Listo" para confirmarlo.
+ * - **Android**: dialog nativo del sistema que se cierra automáticamente al seleccionar.
+ *
+ * `endMinDate` garantiza que la fecha de fin siempre sea al menos un día
+ * posterior a la de inicio. Si el usuario adelanta la fecha de inicio más
+ * allá de la de fin, ésta se desplaza automáticamente un día después.
+ *
+ * ### Validación
+ * El `useMemo` `validation` calcula en tiempo real si el rango de fechas es
+ * válido y cuántos días comprende. El botón de confirmación se deshabilita
+ * y se tiñe con `theme.border` cuando `validation.isValid` es `false`.
+ *
+ * ### Cálculo del precio
+ * `totalPrice = validation.days × item.dailyRate`. Se muestra en el resumen
+ * solo cuando la validación es correcta; cuando no lo es, el precio aparece
+ * atenuado con `opacity: 0.6`.
+ *
+ * ### Confirmación
+ * `handleConfirm` envía `POST /api/rentals` con el cuerpo:
+ * `{ hardwareId, userId, startDate, endDate, totalPrice, status: 'RENTED' }`.
+ * Tras éxito dispara feedback háptico de tipo `Success`, invoca `onSuccess`
+ * (recarga el inventario) y cierra el modal con `onClose`.
+ */
 export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) {
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];
 
   const [startDate, setStartDate] = useState(todayStr());
   const [endDate, setEndDate] = useState(tomorrowStr());
+  /** Qué picker está activo ('start', 'end' o `null` = ninguno). */
   const [activePicker, setActivePicker] = useState<'start' | 'end' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /** Fecha de hoy sin horas — sirve como `minimumDate` para el picker de inicio. */
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
 
+  /** Fecha mínima del picker de fin: siempre el día siguiente al inicio seleccionado. */
   const endMinDate = useMemo(() => {
     const d = toDate(startDate);
     d.setDate(d.getDate() + 1);
     return d;
   }, [startDate]);
 
+  /**
+   * Resultado de validación calculado a partir del rango de fechas actual.
+   * - `isValid`: si el rango es mayor a cero días.
+   * - `message`: mensaje de error a mostrar si no es válido.
+   * - `days`: número de días del alquiler (0 si inválido).
+   */
   const validation = useMemo(() => {
     const days = calcDays(startDate, endDate);
     if (days < 0) return { isValid: false, message: 'La fecha de fin es anterior al inicio', days: 0 };
@@ -73,8 +155,20 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
     return { isValid: true, message: '', days };
   }, [startDate, endDate]);
 
+  /** Precio total estimado = días × tarifa diaria del equipo. */
   const totalPrice = validation.days * (item?.dailyRate ?? 0);
 
+  /**
+   * Maneja el cambio de fecha en el DateTimePicker.
+   *
+   * En Android el picker se cierra solo al seleccionar; en iOS permanece
+   * abierto hasta que el usuario pulsa "Listo". Cuando se cambia la fecha de
+   * inicio y el nuevo valor iguala o supera la fecha de fin, la fecha de fin
+   * se desplaza automáticamente un día más tarde.
+   *
+   * @param _event - Evento nativo del picker (no se usa directamente).
+   * @param date   - Fecha seleccionada por el usuario, o `undefined` si canceló.
+   */
   function handleDateChange(_event: DateTimePickerEvent, date?: Date) {
     // On Android the picker closes itself; on iOS stays open until "Listo"
     if (Platform.OS === 'android') setActivePicker(null);
@@ -94,6 +188,13 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
     }
   }
 
+  /**
+   * Envía el alquiler a la API y gestiona el resultado.
+   *
+   * Solo se ejecuta si `item` está disponible y la validación es correcta.
+   * Ante éxito dispara `expo-haptics` de tipo `Success`, actualiza el inventario
+   * llamando a `onSuccess`, y cierra el modal. Ante error muestra un `Alert`.
+   */
   async function handleConfirm() {
     if (!item || !validation.isValid) return;
 
@@ -276,6 +377,19 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
 
 // ── Subcomponente campo de fecha ──────────────────────────────────────────────
 
+/**
+ * Campo táctil de selección de fecha para el modal de alquiler.
+ *
+ * Muestra la fecha formateada y un ícono de calendario. Cuando el campo está
+ * activo (su picker está abierto), el borde se tiñe con el color primario del
+ * tema para indicar el foco visual.
+ *
+ * @param label   - Etiqueta del campo ("Fecha inicio" / "Fecha fin").
+ * @param value   - Fecha actual en formato `YYYY-MM-DD`.
+ * @param onPress - Callback que activa el picker correspondiente.
+ * @param active  - `true` cuando el picker de este campo está abierto.
+ * @param theme   - Paleta de colores del tema activo.
+ */
 function DateField({ label, value, onPress, active, theme }: {
   label: string; value: string; onPress: () => void; active: boolean; theme: Theme;
 }) {

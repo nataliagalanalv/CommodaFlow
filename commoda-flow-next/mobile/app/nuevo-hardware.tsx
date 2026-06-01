@@ -12,6 +12,15 @@ import { Colors, Theme, Typography, Spacing, Radius } from '../constants/theme';
 import { API_URL } from '../constants/api';
 import { Hardware, HardwareCategory, HardwareStatus } from '../types';
 
+/**
+ * Esquema Zod de validación para el formulario de nuevo equipo.
+ *
+ * - `model`: mínimo 2 caracteres para evitar abreviaturas sin sentido.
+ * - `specs`: mínimo 3 caracteres; campo descriptivo libre.
+ * - `category`: enum restringido a los tres valores válidos del dominio.
+ * - `dailyRate`: número positivo; el parser convierte el string del input antes de validar.
+ * - `status`: siempre `'AVAILABLE'` al crear; se pasa como default para no exponer el campo.
+ */
 const hardwareSchema = z.object({
   model: z.string().min(2, 'El modelo debe tener al menos 2 caracteres'),
   specs: z.string().min(3, 'Las especificaciones son requeridas'),
@@ -20,13 +29,42 @@ const hardwareSchema = z.object({
   status: z.enum(['AVAILABLE', 'RENTED', 'MAINTENANCE']).default('AVAILABLE'),
 });
 
+/** Mapa de errores de campo derivado del esquema, todos opcionales. */
 type FormErrors = Partial<Record<string, string>>;
 
+/** Todas las categorías disponibles para el selector de chips. */
 const CATEGORIES: HardwareCategory[] = ['LAPTOP', 'TABLET', 'PERIPHERAL'];
+
+/** Etiquetas legibles para cada categoría de hardware. */
 const CATEGORY_LABEL: Record<HardwareCategory, string> = {
   LAPTOP: 'Portátil', TABLET: 'Tablet', PERIPHERAL: 'Periférico',
 };
 
+/**
+ * Pantalla modal para crear un nuevo equipo de hardware (solo administradores).
+ *
+ * Se presenta como modal sobre la pantalla de inventario, con header propio
+ * definido en `app/_layout.tsx` (`presentation: 'modal'`).
+ *
+ * ### Flujo de creación
+ * 1. El usuario rellena el formulario (modelo, especificaciones, categoría, precio).
+ * 2. Al pulsar "Añadir equipo", se valida el formulario con Zod:
+ *    - Si hay errores, se muestran bajo cada campo sin llamar a la API.
+ *    - Si es válido, se envía `POST /api/hardware` con el token Bearer.
+ * 3. Ante respuesta exitosa:
+ *    - El nuevo equipo se **antepone** al array del store (`[created, ...items]`)
+ *      para que aparezca primero en el inventario sin necesidad de recargar.
+ *    - Se dispara feedback háptico de tipo `Success`.
+ *    - Se cierra el modal con `router.back()`.
+ *
+ * ### Selector de categoría
+ * Se implementa con chips táctiles en lugar de un picker nativo, lo que
+ * ofrece mejor visibilidad y consistencia visual entre plataformas.
+ *
+ * ### Teclado
+ * `KeyboardAvoidingView` adapta el layout al teclado virtual diferenciando
+ * entre el comportamiento de iOS (`padding`) y Android (`height`).
+ */
 export default function NuevoHardwareScreen() {
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];
@@ -41,8 +79,16 @@ export default function NuevoHardwareScreen() {
   const [dailyRate, setDailyRate] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  /** Mensaje de error devuelto por el servidor (ej. conflicto de modelo). */
   const [serverError, setServerError] = useState('');
 
+  /**
+   * Valida el formulario y, si es correcto, crea el equipo en la API.
+   *
+   * Convierte `dailyRate` de string a float antes de pasarlo a Zod.
+   * Si la validación falla, asigna los errores a los campos correspondientes.
+   * En caso de éxito actualiza el store y cierra el modal.
+   */
   async function handleSubmit() {
     setServerError('');
     const parsed = hardwareSchema.safeParse({
@@ -118,6 +164,12 @@ export default function NuevoHardwareScreen() {
   );
 }
 
+/**
+ * Fábrica de estilos parametrizada por el tema activo.
+ *
+ * @param theme - Paleta de colores del tema activo.
+ * @returns Hoja de estilos para la pantalla de creación de hardware.
+ */
 const styles = (theme: Theme) => StyleSheet.create({
   flex: { flex: 1, backgroundColor: theme.background },
   container: { padding: Spacing.xl, gap: Spacing.xs },

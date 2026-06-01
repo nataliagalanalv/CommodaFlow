@@ -3,23 +3,58 @@ import { Ionicons } from '@expo/vector-icons';
 import { Hardware } from '../../types';
 import { Colors, Typography, Spacing, Radius, CategoryColors, StatusColors } from '../../constants/theme';
 
+/**
+ * Props del componente `HardwareCard`.
+ */
 interface Props {
+  /** Equipo a mostrar. */
   item: Hardware;
+  /**
+   * Callback opcional invocado al pulsar la tarjeta.
+   * En la pantalla de inventario solo se pasa si el equipo está disponible,
+   * por lo que los equipos no disponibles resultan no interactivos.
+   */
   onPress?: () => void;
 }
 
+/**
+ * Mapa de categoría → nombre del ícono Ionicons.
+ * Se usa para representar visualmente el tipo de equipo en el contenedor de ícono.
+ */
 const CATEGORY_ICON: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   LAPTOP: 'laptop-outline',
   TABLET: 'tablet-portrait-outline',
   PERIPHERAL: 'hardware-chip-outline',
 };
 
+/**
+ * Etiquetas legibles en español para cada estado de hardware.
+ * Se muestran en el badge inferior derecho de la tarjeta.
+ */
 const STATUS_LABEL: Record<string, string> = {
   AVAILABLE: 'Disponible',
   RENTED: 'Alquilado',
   MAINTENANCE: 'Mantenimiento',
 };
 
+/**
+ * Tarjeta de hardware para la pantalla de inventario.
+ *
+ * Muestra en una fila horizontal:
+ * - **Ícono de categoría** con fondo semitransparente del color de la categoría
+ *   (extraído de `CategoryColors`).
+ * - **Nombre del modelo** (truncado a una línea).
+ * - **Especificaciones técnicas** (máx. 2 líneas).
+ * - **Precio diario** alineado a la izquierda del pie.
+ * - **Badge de estado** alineado a la derecha del pie, con fondo semitransparente
+ *   del color del estado (extraído de `StatusColors`).
+ *
+ * El color del ícono y del badge se obtienen de `CategoryColors` y `StatusColors`
+ * respectivamente, con el color primario del tema como fallback.
+ *
+ * @param item    - Equipo a renderizar.
+ * @param onPress - Acción al pulsar la tarjeta (normalmente abre el modal de alquiler).
+ */
 export function HardwareCard({ item, onPress }: Props) {
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];

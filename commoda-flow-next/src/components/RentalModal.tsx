@@ -4,30 +4,62 @@
 import React, { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import type { Hardware } from '../types/hardware';
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../context/AuthContext';
 
+/**
+ * Props del modal de confirmación de alquiler (versión web).
+ */
 interface RentalModalProps {
+  /** Verdadero cuando el modal debe mostrarse. */
   isOpen: boolean;
+  /** Callback para cerrar el modal sin confirmar. */
   onClose: () => void;
+  /** Equipo que se quiere alquilar. */
   item: Hardware;
+  /** Callback invocado tras confirmar el alquiler con éxito. Normalmente recarga el inventario. */
   onSuccess: () => void;
 }
 
+/**
+ * Modal de confirmación de alquiler para la aplicación web.
+ *
+ * Permite al usuario seleccionar las fechas de inicio y fin del alquiler,
+ * muestra el coste total calculado en tiempo real y confirma la operación
+ * enviando una petición `POST /api/rentals`.
+ *
+ * ### Validación de fechas
+ * `rentalValidation` (calculado con `useMemo`) comprueba:
+ * - Que ambas fechas estén seleccionadas.
+ * - Que la fecha de fin no sea anterior al inicio.
+ * - Que el alquiler sea de al menos 1 día.
+ *
+ * El botón de confirmación y el resumen de precio se deshabilitan / apagan
+ * visualmente mientras la validación no pase.
+ *
+ * ### Diseño
+ * Overlay con fondo glassmorphism (backdrop-blur). El contenido del modal
+ * entra con animación `fade-in zoom-in` de Tailwind.
+ *
+ * @param isOpen   - Controla la visibilidad del modal.
+ * @param onClose  - Función para cerrar el modal.
+ * @param item     - Equipo a alquilar.
+ * @param onSuccess - Callback tras alquiler exitoso.
+ */
 export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Cálculo de precio (mismo que el tuyo, súper limpio)
+  /** Validación reactiva de las fechas seleccionadas y cálculo de días. */
   const rentalValidation = useMemo(() => {
     if (!startDate || !endDate) {
       return { isValid: false, message: "Selecciona ambas fechas", days: 0 };
     }
-    
+
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     // Normalizamos a medianoche para evitar errores con horas/minutos
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
@@ -38,7 +70,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
     if (diffDays < 0) {
       return { isValid: false, message: "La fecha de fin es anterior al inicio", days: 0 };
     }
-    
+
     if (diffDays === 0) {
       return { isValid: false, message: "El alquiler mínimo es de 1 día", days: 0 };
     }
@@ -46,23 +78,30 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
     return { isValid: true, message: "", days: diffDays };
   }, [startDate, endDate]);
 
-  // El precio ahora depende de los días calculados en la validación
+  /** Precio total calculado como `días × tarifaDiaria`. */
   const totalPrice = rentalValidation.days * item.dailyRate;
 
   if (!isOpen) return null;
 
+  /**
+   * Envía la solicitud de alquiler al servidor.
+   * Valida los datos antes de hacer la petición y muestra toasts
+   * de éxito o error según el resultado.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user) {
-      toast.error("Debes iniciar sesión para alquilar", { 
-        style: { borderRadius: '1.5rem' } 
+      toast.error("Debes iniciar sesión para alquilar", {
+        style: { borderRadius: '1.5rem' }
       });
       return;
     }
 
     if (!rentalValidation.isValid) {
-      toast.warning(rentalValidation.message, { 
+      toast.warning(rentalValidation.message, {
         style: { borderRadius: '1.5rem' },
         icon: '⚠️'
       });
@@ -92,7 +131,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
         throw new Error(data.message || 'Error en el servidor');
       }
 
-      onSuccess(); 
+      onSuccess();
       toast.success(`¡Reserva confirmada para ${item.model}!`, {
         icon: '✅',
         style: { borderRadius: '1.5rem' }
@@ -110,13 +149,13 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Fondo con desenfoque Glassmorphism */}
-      <div 
-        className="absolute inset-0 bg-[#1A263C]/40 backdrop-blur-md transition-opacity" 
-        onClick={onClose} 
+      <div
+        className="absolute inset-0 bg-[#1A263C]/40 backdrop-blur-md transition-opacity"
+        onClick={onClose}
       />
 
       <div className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden animate-in fade-in zoom-in duration-300">
-        
+
         {/* Línea decorativa Commodore */}
         <div className="h-2 w-full bg-gradient-to-r from-[#3D70DD] to-[#2BB673]" />
 
@@ -137,8 +176,8 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[#1A263C] uppercase tracking-[0.15em] ml-1">Fecha Inicio</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   required
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
@@ -147,8 +186,8 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
               </div>
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-[#1A263C] uppercase tracking-[0.15em] ml-1">Fecha Fin</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   required
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
@@ -168,8 +207,8 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
 
             {/* --- CAJA DE RESUMEN DE PRECIO ACTUALIZADA --- */}
             <div className={`p-6 rounded-[2rem] border transition-all duration-300 mt-4 ${
-              rentalValidation.isValid 
-                ? 'bg-[#F5F8FF] border-blue-50 opacity-100' 
+              rentalValidation.isValid
+                ? 'bg-[#F5F8FF] border-blue-50 opacity-100'
                 : 'bg-slate-50 border-slate-100 opacity-60'
             }`}>
               <div className="flex justify-between items-center">
@@ -190,8 +229,8 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
             </div>
 
             <div className="flex gap-4 pt-4">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={onClose}
                 className="flex-1 py-4 text-[11px] uppercase tracking-widest font-black text-slate-400 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-all active:scale-95"
               >

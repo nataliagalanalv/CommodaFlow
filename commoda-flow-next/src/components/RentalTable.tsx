@@ -1,12 +1,30 @@
 "use client";
 
 import React from 'react';
-import type { Rental } from '../types/rental.types'; 
+import type { Rental } from '../types/rental.types';
 
+/**
+ * Props del componente `RentalTable`.
+ */
 interface RentalTableProps {
+  /** Array de alquileres a mostrar. Puede estar vacío (el componente gestiona el estado vacío). */
   rentals: Rental[];
 }
 
+/**
+ * Tabla de historial de alquileres para la aplicación web.
+ *
+ * Muestra los alquileres en formato tabular con columnas:
+ * - **Equipo**: nombre del modelo del hardware alquilado.
+ * - **Usuario**: nombre del usuario que realizó el alquiler.
+ * - **Entrega**: fecha prevista de devolución formateada en español.
+ * - **Estado**: (columna definida en el thead pero sin datos en el tbody en esta versión).
+ *
+ * Las filas tienen hover con fondo sutil para facilitar la lectura.
+ * Si el array está vacío, muestra un mensaje de "sin registros" en toda la fila.
+ *
+ * @param rentals - Lista de alquileres a renderizar.
+ */
 export const RentalTable: React.FC<RentalTableProps> = ({ rentals }) => {
   return (
     <div className="overflow-hidden rounded-[2rem] border border-slate-100 shadow-xl shadow-blue-900/5 bg-white">

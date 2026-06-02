@@ -26,4 +26,4 @@
  * El token del usuario se incluye en cada petición como cabecera
  * `Authorization: Bearer <token>` (almacenado en `authStore`).
  */
-export const API_URL = 'http://192.168.1.135:3000';
+export const API_URL = 'https://commoda-flow-next.vercel.app';

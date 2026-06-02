@@ -21,16 +21,24 @@ export const RentalService = {
    * @param hardwareId - UUID del equipo a alquilar (debe estar en estado `AVAILABLE`).
    * @returns El registro del alquiler recién creado.
    */
-  async create(userId: string, hardwareId: string): Promise<rentals> {
+  async create(
+    userId: string,
+    hardwareId: string,
+    startDate: Date,
+    endDate: Date,
+    totalPrice: number,
+  ): Promise<rentals> {
     // Usamos una transacción para asegurar que si algo falla, no se cree el alquiler a medias
     return await prisma.$transaction(async (tx) => {
-      // 1. Creamos el registro de alquiler
+      // 1. Creamos el registro de alquiler con todas las fechas y precio
       const newRental = await tx.rentals.create({
         data: {
           userId,
           hardwareId,
-          startDate: new Date(),
-          status : 'RENTED'
+          startDate,
+          endDate,
+          totalPrice,
+          status: 'RENTED',
         },
       });
 

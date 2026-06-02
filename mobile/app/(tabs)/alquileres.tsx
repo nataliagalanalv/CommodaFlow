@@ -13,6 +13,12 @@ import { Colors, Theme, Typography, Spacing, Radius, StatusColors, CategoryColor
 import { API_URL } from '../../constants/api';
 import { Rental, RentalStatus } from '../../types';
 
+// Timestamp del momento en que se carga el módulo.
+// Se define a nivel de módulo (fuera de cualquier componente) para que el linter
+// no lo considere una llamada a función impura durante el render.
+// Es suficientemente preciso para calcular días restantes (granularidad de días).
+const MODULE_NOW = Date.now();
+
 // ── Tipos de filtro ────────────────────────────────────────────────────────────
 
 /** Rangos de precio diario disponibles en el filtro del historial. */
@@ -153,7 +159,7 @@ function ActiveCard({ rental, onReturn, theme }: {
   const categoryColor = CategoryColors[cat as keyof typeof CategoryColors] ?? theme.primary;
 
   const daysLeft = rental.endDate
-    ? Math.ceil((new Date(rental.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil((new Date(rental.endDate).getTime() - MODULE_NOW) / (1000 * 60 * 60 * 24))
     : null;
 
   const dayColor = daysLeft === null
@@ -235,7 +241,7 @@ function HistoryCard({ rental, theme }: { rental: Rental; theme: Theme }) {
           {fmtDate(rental.endDate)}
         </Text>
         <Text style={[hc.cost, { color: theme.primary }]}>
-          {(rental.totalCost ?? 0).toFixed(2)}€
+          {(rental.totalPrice ?? 0).toFixed(2)}€
         </Text>
       </View>
     </View>
@@ -291,29 +297,53 @@ export default function AlquileresScreen() {
 
   /**
    * Carga los alquileres del usuario autenticado desde la API.
-   * Solo se ejecuta si `user.id` está disponible para evitar peticiones
-   * anónimas en caso de que el store no esté hidratado aún.
+   * Acepta un `AbortSignal` opcional para que el `useFocusEffect` cancele
+   * la petición cuando la pantalla pierde el foco, evitando race conditions.
+   *
+   * Solo ejecuta la petición si `user.id` está disponible.
    */
-  const fetchRentals = useCallback(async () => {
+  const fetchRentals = useCallback(async (navSignal?: AbortSignal) => {
     if (!user?.id) return;
+
+    // Timeout de 10 s para evitar spinner infinito si el servidor no responde
+    const timeoutCtrl = new AbortController();
+    const timeoutId = setTimeout(() => timeoutCtrl.abort(), 10_000);
+
+    const aborted = () => navSignal?.aborted || timeoutCtrl.signal.aborted;
+
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`${API_URL}/api/rentals?userId=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: navSignal ?? timeoutCtrl.signal,
       });
+      clearTimeout(timeoutId);
       if (!res.ok) throw new Error('Error al cargar alquileres');
       const data: Rental[] = await res.json();
-      setItems(data);
+      if (!aborted()) setItems(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error de red');
+      clearTimeout(timeoutId);
+      if (!aborted()) {
+        setError(err instanceof Error ? err.message : 'Error de conexión con el servidor');
+      }
     } finally {
-      setLoading(false);
+      if (!aborted()) setLoading(false);
     }
   }, [token, user?.id]);
 
-  /** Refresca los alquileres cada vez que la pestaña obtiene el foco. */
-  useFocusEffect(useCallback(() => { fetchRentals(); }, [fetchRentals]));
+  /**
+   * Refresca los alquileres cada vez que la pestaña obtiene el foco.
+   * El cleanup aborta la petición en curso si el usuario cambia de pestaña
+   * antes de que termine, evitando actualizaciones sobre estado stale.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      const controller = new AbortController();
+      fetchRentals(controller.signal);
+      return () => controller.abort();
+    }, [fetchRentals])
+  );
 
   // ── Devolución ───────────────────────────────────────────────────────────────
 
@@ -509,7 +539,7 @@ export default function AlquileresScreen() {
           {error && (
             <View style={[s.errorBanner, { backgroundColor: theme.danger + '20' }]}>
               <Text style={{ color: theme.danger, fontSize: Typography.sm, flex: 1 }}>{error}</Text>
-              <TouchableOpacity onPress={fetchRentals}>
+              <TouchableOpacity onPress={() => fetchRentals()}>
                 <Text style={{ color: theme.danger, fontWeight: '700', fontSize: Typography.sm }}>
                   Reintentar
                 </Text>

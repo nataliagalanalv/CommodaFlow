@@ -138,29 +138,53 @@ export default function InventarioScreen() {
   const activeFilterCount = [statusFilter, categoryFilter, priceFilter].filter(f => f !== 'all').length;
 
   /**
-   * Obtiene el inventario completo desde la API y lo persiste en el store.
-   * Se envuelve en `useCallback` para que `useFocusEffect` no lo recree
-   * en cada render, sino solo cuando `token` cambia.
+   * Carga el inventario desde la API. Acepta un `AbortSignal` opcional para
+   * que el `useFocusEffect` pueda cancelar la petición cuando la pantalla
+   * pierde el foco, evitando actualizaciones de estado en vuelo.
+   *
+   * Se usa también como callback de pull-to-refresh (sin señal).
    */
-  const fetchHardware = useCallback(async () => {
+  const fetchHardware = useCallback(async (navSignal?: AbortSignal) => {
+    // Timeout de 10 s para evitar spinner infinito si el servidor no responde
+    const timeoutId = setTimeout(() => timeoutCtrl.abort(), 10_000);
+    const timeoutCtrl = new AbortController();
+
+    // Combina la señal de navegación con la de timeout
+    const aborted = () => navSignal?.aborted || timeoutCtrl.signal.aborted;
+
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`${API_URL}/api/hardware`, {
         headers: { Authorization: `Bearer ${token}` },
+        signal: navSignal ?? timeoutCtrl.signal,
       });
+      clearTimeout(timeoutId);
       if (!res.ok) throw new Error('Error al cargar el inventario');
       const data: Hardware[] = await res.json();
-      setItems(data);
+      if (!aborted()) setItems(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error de red');
+      clearTimeout(timeoutId);
+      if (!aborted()) {
+        setError(err instanceof Error ? err.message : 'Error de conexión con el servidor');
+      }
     } finally {
-      setLoading(false);
+      if (!aborted()) setLoading(false);
     }
   }, [token]);
 
-  /** Refresca el inventario cada vez que la pestaña obtiene el foco. */
-  useFocusEffect(useCallback(() => { fetchHardware(); }, [fetchHardware]));
+  /**
+   * Refresca el inventario cada vez que la pestaña obtiene el foco.
+   * El cleanup del efecto aborta la petición si el usuario navega a otra
+   * pestaña antes de que termine, evitando actualizaciones sobre estado stale.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      const controller = new AbortController();
+      fetchHardware(controller.signal);
+      return () => controller.abort();
+    }, [fetchHardware])
+  );
 
   /**
    * Lista de equipos filtrada por los cuatro criterios combinados.
@@ -236,7 +260,7 @@ export default function InventarioScreen() {
       {error && (
         <View style={[s.errorBanner, { backgroundColor: theme.danger + '20' }]}>
           <Text style={{ color: theme.danger, fontSize: Typography.sm }}>{error}</Text>
-          <TouchableOpacity onPress={fetchHardware}>
+          <TouchableOpacity onPress={() => fetchHardware()}>
             <Text style={{ color: theme.danger, fontWeight: '700', fontSize: Typography.sm }}>Reintentar</Text>
           </TouchableOpacity>
         </View>
@@ -252,7 +276,7 @@ export default function InventarioScreen() {
             />
           )}
         contentContainerStyle={{ paddingVertical: Spacing.sm }}
-        onRefresh={fetchHardware}
+        onRefresh={() => fetchHardware()}
         refreshing={isLoading}
         ListEmptyComponent={
           <View style={s.empty}>
@@ -268,7 +292,7 @@ export default function InventarioScreen() {
       <RentalModal
         item={selectedHardware}
         onClose={() => setSelectedHardware(null)}
-        onSuccess={fetchHardware}
+        onSuccess={() => fetchHardware()}
         userId={user?.id ?? ''}
         token={token ?? ''}
       />

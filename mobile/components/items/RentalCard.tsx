@@ -101,7 +101,7 @@ export function RentalCard({ item, onPress }: Props) {
       </View>
 
       <View style={s.footer}>
-        <Text style={[s.cost, { color: theme.primary }]}>{item.totalCost.toFixed(2)}€</Text>
+        <Text style={[s.cost, { color: theme.primary }]}>{(item.totalPrice ?? 0).toFixed(2)}€</Text>
         {isActive && days !== null && (
           <Text style={[s.days, { color: days < 0 ? theme.danger : theme.textSecondary }]}>
             {days < 0 ? `Vencido hace ${Math.abs(days)}d` : `${days}d restantes`}

@@ -66,8 +66,8 @@ export interface Rental {
   endDate: string;
   /** Estado actual del alquiler. */
   status: RentalStatus;
-  /** Coste total calculado al crear el alquiler (días × tarifa diaria). */
-  totalCost: number;
+  /** Precio total calculado al crear el alquiler (días × tarifa diaria). Coincide con el campo `totalPrice` de Prisma. */
+  totalPrice: number;
   /** Datos del hardware relacionado (incluidos opcionalmente en la respuesta de la API). */
   hardware?: {
     model: string;
@@ -97,7 +97,7 @@ export interface User {
 
 /**
  * DTO para crear un nuevo alquiler desde la aplicación móvil.
- * El servidor calcula `totalCost` y establece el estado inicial.
+ * El servidor calcula `totalPrice` y establece el estado inicial.
  */
 export interface CreateRentalDTO {
   /** ID del equipo a alquilar. */

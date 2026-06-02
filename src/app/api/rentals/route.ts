@@ -17,13 +17,19 @@ import { RentalService } from '../../../services/rental.service';
  */
 export async function POST(req: Request) {
   try {
-    const { userId, hardwareId } = await req.json();
+    const { userId, hardwareId, startDate, endDate, totalPrice } = await req.json();
 
-    if (!userId || !hardwareId) {
-      return NextResponse.json({ error: "Faltan datos (userId o hardwareId)" }, { status: 400 });
+    if (!userId || !hardwareId || !startDate || !endDate) {
+      return NextResponse.json({ error: "Faltan datos obligatorios" }, { status: 400 });
     }
 
-    const rental = await RentalService.create(userId, hardwareId);
+    const rental = await RentalService.create(
+      userId,
+      hardwareId,
+      new Date(startDate),
+      new Date(endDate),
+      Number(totalPrice ?? 0),
+    );
     return NextResponse.json(rental, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: "No se pudo procesar el alquiler" }, { status: 500 });

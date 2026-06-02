@@ -103,7 +103,7 @@ export default function AddHardwarePage() {
             <input
               required
               type="text"
-              placeholder="Ej: MacBook Pro M3 14\""
+              placeholder='Ej: MacBook Pro M3 14"'
               className="w-full bg-[#F5F8FF] border-none rounded-2xl px-6 py-4 text-[#1A263C] font-bold focus:ring-2 focus:ring-[#3D70DD] transition-all outline-none"
               value={formData.model}
               onChange={(e) => setFormData({...formData, model: e.target.value})}

@@ -2,12 +2,12 @@
 //
 // DESARROLLO LOCAL (Expo Go en el mismo WiFi que el PC):
 //   Usa la IP local de tu máquina. Ejecuta `ipconfig` en Windows y busca tu IPv4.
-//   Asegúrate de tener `npm run dev` ejecutándose en commoda-flow-next/.
+//   Asegúrate de tener `npm run dev` ejecutándose en la raíz del repositorio.
 //   Ejemplo: 'http://192.168.1.135:3000'
 //
 // PRODUCCIÓN (Vercel):
 //   Cambia a tu URL de Vercel cuando el servidor local no esté corriendo.
-//   Ejemplo: 'https://commoda-flow-next.vercel.app'
+//   Ejemplo: 'https://commoda-flow.vercel.app'
 //
 /**
  * URL base de la API de CommodaFlow.

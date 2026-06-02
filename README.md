@@ -46,7 +46,7 @@ Ambas consumen la misma API REST alojada en el servidor Next.js.
 ## Estructura del proyecto
 
 ```
-commoda-flow-next/
+CommodaFlow/               ← raíz del repositorio
 │
 ├── prisma/
 │   └── schema.prisma            # Modelos de la base de datos (users, Hardware, rentals)
@@ -196,7 +196,7 @@ Para el desarrollo de la app móvil:
 
 ```bash
 git clone <url-del-repositorio>
-cd commoda-flow-next
+cd CommodaFlow
 ```
 
 ### 2. Configurar el proyecto web

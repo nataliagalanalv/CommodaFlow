@@ -27,24 +27,28 @@ interface Props {
 }
 
 /**
- * Devuelve la fecha de hoy en formato ISO `YYYY-MM-DD`.
- * @returns Fecha actual como string.
+ * Devuelve la fecha de hoy en formato `YYYY-MM-DD` usando hora **local**.
+ * No se usa `toISOString()` porque devuelve UTC, lo que en zonas UTC+N
+ * puede resultar en el día anterior.
+ *
+ * @returns Fecha actual local como string `YYYY-MM-DD`.
  */
-function todayStr() {
-  return new Date().toISOString().split('T')[0];
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 /**
- * Devuelve la fecha de mañana en formato ISO `YYYY-MM-DD`.
+ * Devuelve la fecha de mañana en formato `YYYY-MM-DD` usando hora **local**.
  * Se usa como valor inicial de la fecha de fin para garantizar
  * un mínimo de un día de alquiler.
  *
- * @returns Fecha de mañana como string.
+ * @returns Fecha de mañana local como string `YYYY-MM-DD`.
  */
-function tomorrowStr() {
+function tomorrowStr(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 /**
@@ -149,6 +153,14 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
    * - `days`: número de días del alquiler (0 si inválido).
    */
   const validation = useMemo(() => {
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0, 0, 0, 0);
+    const start = new Date(startDate + 'T00:00:00');
+
+    if (start < todayMidnight) {
+      return { isValid: false, message: 'La fecha de inicio no puede ser anterior a hoy', days: 0 };
+    }
+
     const days = calcDays(startDate, endDate);
     if (days < 0) return { isValid: false, message: 'La fecha de fin es anterior al inicio', days: 0 };
     if (days === 0) return { isValid: false, message: 'El alquiler mínimo es de 1 día', days: 0 };

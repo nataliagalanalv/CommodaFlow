@@ -45,6 +45,19 @@ interface RentalModalProps {
  * @param item     - Equipo a alquilar.
  * @param onSuccess - Callback tras alquiler exitoso.
  */
+/** Devuelve la fecha de hoy en formato `YYYY-MM-DD` usando hora local (no UTC). */
+function todayLocalStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Devuelve el día siguiente a una fecha `YYYY-MM-DD` en el mismo formato. */
+function nextDayStr(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,15 +70,17 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
       return { isValid: false, message: "Selecciona ambas fechas", days: 0 };
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    // Usamos T00:00:00 para interpretar como hora local, no UTC
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
 
-    // Normalizamos a medianoche para evitar errores con horas/minutos
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
+    if (start < today) {
+      return { isValid: false, message: "La fecha de inicio no puede ser anterior a hoy", days: 0 };
+    }
 
-    const diffTime = end.getTime() - start.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
       return { isValid: false, message: "La fecha de fin es anterior al inicio", days: 0 };
@@ -179,6 +194,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
                 <input
                   type="date"
                   required
+                  min={todayLocalStr()}
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   className="w-full p-4 rounded-2xl border-2 border-[#F5F8FF] bg-[#F5F8FF] focus:border-[#3D70DD] focus:bg-white transition-all outline-none text-[#1A263C] font-bold text-sm"
@@ -189,6 +205,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
                 <input
                   type="date"
                   required
+                  min={startDate ? nextDayStr(startDate) : todayLocalStr()}
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   className="w-full p-4 rounded-2xl border-2 border-[#F5F8FF] bg-[#F5F8FF] focus:border-[#3D70DD] focus:bg-white transition-all outline-none text-[#1A263C] font-bold text-sm"
@@ -238,7 +255,7 @@ export const RentalModal: React.FC<RentalModalProps> = ({ item, isOpen, onClose,
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !rentalValidation.isValid}
                 className="flex-[2] py-4 bg-[#3D70DD] text-white rounded-2xl text-xs uppercase tracking-[0.2em] font-black shadow-xl shadow-blue-100 hover:bg-[#2F5FC7] transition-all transform active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
               >
                 {isSubmitting ? "Procesando..." : "Confirmar Ahora"}

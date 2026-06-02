@@ -55,6 +55,14 @@ const PRICE_OPTIONS: { value: PriceRange; label: string }[] = [
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
+/** Formatea una fecha ISO a `dd/mm/yyyy` en español, o devuelve `'—'` si es nula o inválida. */
+function fmtDate(date: string | null | undefined): string {
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('es-ES');
+}
+
 /** Etiquetas legibles para cada estado de alquiler. */
 const STATUS_LABEL: Record<string, string> = {
   RENTED: 'Activo', RETURNED: 'Devuelto', OVERDUE: 'Vencido',
@@ -171,9 +179,9 @@ function ActiveCard({ rental, onReturn, theme }: {
           {rental.hardware?.model ?? 'Equipo'}
         </Text>
         <Text style={[ac.dates, { color: theme.textSecondary }]}>
-          {new Date(rental.startDate).toLocaleDateString('es-ES')}
+          {fmtDate(rental.startDate)}
           {' → '}
-          {new Date(rental.endDate).toLocaleDateString('es-ES')}
+          {fmtDate(rental.endDate)}
         </Text>
         {dayLabel ? (
           <Text style={[ac.daysLeft, { color: dayColor }]}>{dayLabel}</Text>
@@ -222,9 +230,9 @@ function HistoryCard({ rental, theme }: { rental: Rental; theme: Theme }) {
       </View>
       <View style={hc.meta}>
         <Text style={[hc.info, { color: theme.textSecondary }]}>
-          {new Date(rental.startDate).toLocaleDateString('es-ES')}
+          {fmtDate(rental.startDate)}
           {' → '}
-          {new Date(rental.endDate).toLocaleDateString('es-ES')}
+          {fmtDate(rental.endDate)}
         </Text>
         <Text style={[hc.cost, { color: theme.primary }]}>
           {(rental.totalCost ?? 0).toFixed(2)}€

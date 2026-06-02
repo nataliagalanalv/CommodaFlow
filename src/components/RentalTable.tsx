@@ -25,6 +25,14 @@ interface RentalTableProps {
  *
  * @param rentals - Lista de alquileres a renderizar.
  */
+/** Formatea una fecha ISO a `dd mmm yyyy` en español, o devuelve `'—'` si es nula o inválida. */
+function fmtDate(date: string | null | undefined): string {
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 export const RentalTable: React.FC<RentalTableProps> = ({ rentals }) => {
   return (
     <div className="overflow-hidden rounded-[2rem] border border-slate-100 shadow-xl shadow-blue-900/5 bg-white">
@@ -58,11 +66,7 @@ export const RentalTable: React.FC<RentalTableProps> = ({ rentals }) => {
                     </div>
                   </td>
                   <td className="px-8 py-5 text-sm font-bold text-slate-400">
-                    {new Date(rental.endDate).toLocaleDateString('es-ES', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric'
-                    })}
+                    {fmtDate(rental.endDate)}
                   </td>
                 </tr>
               ))

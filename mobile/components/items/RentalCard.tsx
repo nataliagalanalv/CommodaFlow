@@ -27,15 +27,24 @@ const STATUS_LABEL: Record<string, string> = {
 
 /**
  * Calcula los días que restan hasta la fecha de fin del alquiler.
+ * Devuelve `null` si la fecha es nula o inválida.
  *
- * Un resultado negativo indica que el plazo ya ha vencido.
- *
- * @param endDate - Fecha de fin del alquiler en formato ISO.
- * @returns Número de días restantes (negativo si vencido).
+ * @param endDate - Fecha de fin del alquiler en formato ISO, o `null`.
+ * @returns Número de días restantes (negativo si vencido), o `null`.
  */
-function daysRemaining(endDate: string): number {
-  const diff = new Date(endDate).getTime() - Date.now();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+function daysRemaining(endDate: string | null | undefined): number | null {
+  if (!endDate) return null;
+  const d = new Date(endDate);
+  if (isNaN(d.getTime())) return null;
+  return Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+/** Formatea una fecha ISO a `dd/mm/yyyy` en español, o devuelve `'—'` si es nula. */
+function fmtDate(date: string | null | undefined): string {
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('es-ES');
 }
 
 /**
@@ -61,7 +70,7 @@ export function RentalCard({ item, onPress }: Props) {
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];
   const statusColor = StatusColors[item.status] ?? theme.textSecondary;
-  const days = daysRemaining(item.endDate);
+  const days = daysRemaining(item.endDate);  // null si no hay fecha de fin
   const isActive = item.status === 'RENTED';
 
   return (
@@ -86,14 +95,14 @@ export function RentalCard({ item, onPress }: Props) {
         <View style={s.infoRow}>
           <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
           <Text style={[s.info, { color: theme.textSecondary }]}>
-            {new Date(item.startDate).toLocaleDateString('es-ES')} → {new Date(item.endDate).toLocaleDateString('es-ES')}
+            {fmtDate(item.startDate)} → {fmtDate(item.endDate)}
           </Text>
         </View>
       </View>
 
       <View style={s.footer}>
         <Text style={[s.cost, { color: theme.primary }]}>{item.totalCost.toFixed(2)}€</Text>
-        {isActive && (
+        {isActive && days !== null && (
           <Text style={[s.days, { color: days < 0 ? theme.danger : theme.textSecondary }]}>
             {days < 0 ? `Vencido hace ${Math.abs(days)}d` : `${days}d restantes`}
           </Text>

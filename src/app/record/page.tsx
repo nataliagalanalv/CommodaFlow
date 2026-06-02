@@ -131,7 +131,7 @@ export default function RecordPage() {
                     <div>
                       <h3 className="font-bold text-[#1A263C]">{rental.hardware?.model || "Equipo"}</h3>
                       <p className="text-xs text-slate-400">
-                        Vence el: {new Date(rental.endDate).toLocaleDateString()}
+                        Vence el: {rental.endDate ? new Date(rental.endDate).toLocaleDateString('es-ES') : '—'}
                       </p>
                     </div>
                   </div>

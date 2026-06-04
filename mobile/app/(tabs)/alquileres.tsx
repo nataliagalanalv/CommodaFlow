@@ -302,48 +302,33 @@ export default function AlquileresScreen() {
    *
    * Solo ejecuta la petición si `user.id` está disponible.
    */
-  const fetchRentals = useCallback(async (navSignal?: AbortSignal) => {
+  const fetchRentals = useCallback(async () => {
     if (!user?.id) return;
 
     // Timeout de 10 s para evitar spinner infinito si el servidor no responde
-    const timeoutCtrl = new AbortController();
-    const timeoutId = setTimeout(() => timeoutCtrl.abort(), 10_000);
-
-    const aborted = () => navSignal?.aborted || timeoutCtrl.signal.aborted;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`${API_URL}/api/rentals?userId=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
-        signal: navSignal ?? timeoutCtrl.signal,
+        signal: controller.signal,
       });
-      clearTimeout(timeoutId);
       if (!res.ok) throw new Error('Error al cargar alquileres');
       const data: Rental[] = await res.json();
-      if (!aborted()) setItems(data);
+      setItems(data);
     } catch (err: unknown) {
-      clearTimeout(timeoutId);
-      if (!aborted()) {
-        setError(err instanceof Error ? err.message : 'Error de conexión con el servidor');
-      }
+      setError(err instanceof Error ? err.message : 'Error de conexión con el servidor');
     } finally {
-      if (!aborted()) setLoading(false);
+      clearTimeout(timeoutId);
+      setLoading(false);
     }
   }, [token, user?.id]);
 
-  /**
-   * Refresca los alquileres cada vez que la pestaña obtiene el foco.
-   * El cleanup aborta la petición en curso si el usuario cambia de pestaña
-   * antes de que termine, evitando actualizaciones sobre estado stale.
-   */
-  useFocusEffect(
-    useCallback(() => {
-      const controller = new AbortController();
-      fetchRentals(controller.signal);
-      return () => controller.abort();
-    }, [fetchRentals])
-  );
+  /** Refresca los alquileres cada vez que la pestaña obtiene el foco. */
+  useFocusEffect(useCallback(() => { fetchRentals(); }, [fetchRentals]));
 
   // ── Devolución ───────────────────────────────────────────────────────────────
 

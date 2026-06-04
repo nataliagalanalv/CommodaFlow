@@ -144,47 +144,31 @@ export default function InventarioScreen() {
    *
    * Se usa también como callback de pull-to-refresh (sin señal).
    */
-  const fetchHardware = useCallback(async (navSignal?: AbortSignal) => {
+  const fetchHardware = useCallback(async () => {
     // Timeout de 10 s para evitar spinner infinito si el servidor no responde
-    const timeoutCtrl = new AbortController();
-    const timeoutId = setTimeout(() => timeoutCtrl.abort(), 10_000);
-
-    // Combina la señal de navegación con la de timeout
-    const aborted = () => navSignal?.aborted || timeoutCtrl.signal.aborted;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`${API_URL}/api/hardware`, {
         headers: { Authorization: `Bearer ${token}` },
-        signal: navSignal ?? timeoutCtrl.signal,
+        signal: controller.signal,
       });
-      clearTimeout(timeoutId);
       if (!res.ok) throw new Error('Error al cargar el inventario');
       const data: Hardware[] = await res.json();
-      if (!aborted()) setItems(data);
+      setItems(data);
     } catch (err: unknown) {
-      clearTimeout(timeoutId);
-      if (!aborted()) {
-        setError(err instanceof Error ? err.message : 'Error de conexión con el servidor');
-      }
+      setError(err instanceof Error ? err.message : 'Error de conexión con el servidor');
     } finally {
-      if (!aborted()) setLoading(false);
+      clearTimeout(timeoutId);
+      setLoading(false);
     }
   }, [token]);
 
-  /**
-   * Refresca el inventario cada vez que la pestaña obtiene el foco.
-   * El cleanup del efecto aborta la petición si el usuario navega a otra
-   * pestaña antes de que termine, evitando actualizaciones sobre estado stale.
-   */
-  useFocusEffect(
-    useCallback(() => {
-      const controller = new AbortController();
-      fetchHardware(controller.signal);
-      return () => controller.abort();
-    }, [fetchHardware])
-  );
+  /** Refresca el inventario cada vez que la pestaña obtiene el foco. */
+  useFocusEffect(useCallback(() => { fetchHardware(); }, [fetchHardware]));
 
   /**
    * Lista de equipos filtrada por los cuatro criterios combinados.

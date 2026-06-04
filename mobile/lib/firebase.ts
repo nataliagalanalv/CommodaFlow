@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
+import type { Auth } from 'firebase/auth';
 // @ts-expect-error — getReactNativePersistence existe en runtime pero no está en los tipos exportados
 import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,7 +31,7 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
  * El `try/catch` evita el error "auth already initialized" durante el
  * fast-refresh de desarrollo: si ya existe, se reutiliza con `getAuth`.
  */
-let auth;
+let auth: Auth;
 try {
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),

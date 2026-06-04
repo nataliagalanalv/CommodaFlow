@@ -66,6 +66,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
           user: userWithoutPassword,
+          token: userWithoutPassword.id,
           message: "¡Bienvenido de nuevo!"
         }, { status: 200 });
 
@@ -110,6 +111,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
           user: newUser,
+          token: newUser.id,
           message: "Cuenta creada y sesión iniciada"
         }, { status: 201 });
 

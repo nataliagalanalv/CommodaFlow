@@ -146,8 +146,8 @@ export default function InventarioScreen() {
    */
   const fetchHardware = useCallback(async (navSignal?: AbortSignal) => {
     // Timeout de 10 s para evitar spinner infinito si el servidor no responde
-    const timeoutId = setTimeout(() => timeoutCtrl.abort(), 10_000);
     const timeoutCtrl = new AbortController();
+    const timeoutId = setTimeout(() => timeoutCtrl.abort(), 10_000);
 
     // Combina la señal de navegación con la de timeout
     const aborted = () => navSignal?.aborted || timeoutCtrl.signal.aborted;

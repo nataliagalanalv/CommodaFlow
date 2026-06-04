@@ -89,7 +89,7 @@ export default function LoginScreen() {
         body: JSON.stringify(result.data),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Error al iniciar sesión');
+      if (!res.ok) throw new Error(data.error ?? data.message ?? 'Error al iniciar sesión');
       setAuth(data.user, data.token);
     } catch (err: unknown) {
       setServerError(err instanceof Error ? err.message : 'Error de red');

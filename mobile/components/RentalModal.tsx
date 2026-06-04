@@ -9,6 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { Hardware } from '../types';
 import { Colors, Theme, Typography, Spacing, Radius } from '../constants/theme';
 import { API_URL } from '../constants/api';
+import { scheduleReturnReminder } from '../lib/notifications';
 
 /**
  * Props del componente `RentalModal`.
@@ -231,6 +232,8 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
       }
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Programa un recordatorio local para el día de devolución
+      await scheduleReturnReminder(item.model, endDate);
       onSuccess();
       onClose();
     } catch (err: unknown) {

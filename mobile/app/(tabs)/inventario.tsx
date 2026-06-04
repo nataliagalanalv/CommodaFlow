@@ -253,9 +253,10 @@ export default function InventarioScreen() {
       <FlashList
         data={filtered}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
             <HardwareCard
               item={item}
+              index={index}
               onPress={() => item.status === 'AVAILABLE' ? setSelectedHardware(item) : null}
             />
           )}

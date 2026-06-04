@@ -25,7 +25,19 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "color": "#3D70DD"
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f3666aad-d520-45c1-baf5-aa1805ab0759"
+      }
+    }
   }
 }

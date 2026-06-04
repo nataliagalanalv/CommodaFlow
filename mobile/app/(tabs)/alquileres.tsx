@@ -7,8 +7,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRentalStore } from '../../store/rentalStore';
 import { useAuthStore } from '../../store/authStore';
+import { SwipeableRow } from '../../components/SwipeableRow';
 import { Colors, Theme, Typography, Spacing, Radius, StatusColors, CategoryColors } from '../../constants/theme';
 import { API_URL } from '../../constants/api';
 import { Rental, RentalStatus } from '../../types';
@@ -333,33 +335,37 @@ export default function AlquileresScreen() {
   // ── Devolución ───────────────────────────────────────────────────────────────
 
   /**
-   * Solicita confirmación nativa y registra la devolución de un equipo.
+   * Ejecuta la devolución de un equipo contra la API (sin confirmación previa).
    *
-   * Si el usuario confirma, envía `PATCH /api/rentals/:id/return` y recarga
-   * los alquileres para que el equipo se mueva a la sección de historial.
-   * En caso de éxito también activa feedback háptico de tipo `Success`.
+   * Envía `PATCH /api/rentals/:id/return`, dispara feedback háptico de éxito y
+   * recarga los alquileres para mover el equipo de activos a historial.
+   * La usan tanto el botón "Devolver" (tras confirmar) como el swipe-to-return.
    *
    * @param rentalId - Identificador del alquiler a devolver.
    */
-  async function handleReturn(rentalId: string) {
+  async function doReturn(rentalId: string) {
+    try {
+      const res = await fetch(`${API_URL}/api/rentals/${rentalId}/return`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      fetchRentals(); // recarga para mover de activos → historial
+    } catch {
+      Alert.alert('Error', 'No se pudo registrar la devolución');
+    }
+  }
+
+  /**
+   * Solicita confirmación nativa antes de devolver un equipo (usado por el botón).
+   *
+   * @param rentalId - Identificador del alquiler a devolver.
+   */
+  function handleReturn(rentalId: string) {
     Alert.alert('Registrar devolución', '¿Confirmas la devolución del equipo?', [
       { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Confirmar',
-        onPress: async () => {
-          try {
-            const res = await fetch(`${API_URL}/api/rentals/${rentalId}/return`, {
-              method: 'PATCH',
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error();
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            fetchRentals(); // recarga para mover de activos → historial
-          } catch {
-            Alert.alert('Error', 'No se pudo registrar la devolución');
-          }
-        },
-      },
+      { text: 'Confirmar', onPress: () => doReturn(rentalId) },
     ]);
   }
 
@@ -421,7 +427,15 @@ export default function AlquileresScreen() {
             </View>
           ) : activeRentals.length > 0 ? (
             activeRentals.map((r) => (
-              <ActiveCard key={r.id} rental={r} onReturn={handleReturn} theme={theme} />
+              <SwipeableRow
+                key={r.id}
+                onSwipe={() => doReturn(r.id)}
+                actionLabel="Devolver"
+                actionColor={theme.success}
+                icon="checkmark-circle"
+              >
+                <ActiveCard rental={r} onReturn={handleReturn} theme={theme} />
+              </SwipeableRow>
             ))
           ) : (
             <View style={[s.emptyBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -543,7 +557,11 @@ export default function AlquileresScreen() {
               </Text>
             </View>
           ) : (
-            historyRentals.map((r) => <HistoryCard key={r.id} rental={r} theme={theme} />)
+            historyRentals.map((r, i) => (
+              <Animated.View key={r.id} entering={FadeInDown.delay(Math.min(i, 10) * 50).springify().damping(18)}>
+                <HistoryCard rental={r} theme={theme} />
+              </Animated.View>
+            ))
           )}
 
         </View>

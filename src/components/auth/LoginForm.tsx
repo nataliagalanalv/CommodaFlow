@@ -55,7 +55,7 @@ const EyeOffIcon = () => (
  * el usuario aún no ha empezado a escribir la confirmación.
  */
 export const LoginForm: React.FC = () => {
-  const { login } = useAuth();
+  const { loginWithEmail, registerWithEmail } = useAuth();
 
   // ── Login ──────────────────────────────────────────────────────────────────
   const [email, setEmail] = useState('');
@@ -92,19 +92,9 @@ export const LoginForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        toast.success(data.message || '¡Bienvenido!');
-        login(data.user);
-        window.location.href = '/';
-      } else {
-        throw new Error(data.message || 'Error al autenticar');
-      }
+      await loginWithEmail(email, password);
+      toast.success('¡Bienvenido!');
+      window.location.href = '/';
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Ocurrió un error inesperado');
     } finally {
@@ -130,32 +120,8 @@ export const LoginForm: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const registerResponse = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: registerName,
-          email: registerEmail,
-          password: registerPassword,
-        }),
-      });
-      const registerData = await registerResponse.json();
-      if (!registerResponse.ok) {
-        throw new Error(registerData.message || 'Error al registrarse');
-      }
-
-      const loginResponse = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: registerEmail, password: registerPassword }),
-      });
-      const loginData = await loginResponse.json();
-      if (!loginResponse.ok) {
-        throw new Error(loginData.message || 'Error al iniciar sesión');
-      }
-
+      await registerWithEmail(registerName, registerEmail, registerPassword);
       toast.success('¡Cuenta creada! Bienvenido');
-      login(loginData.user);
       window.location.href = '/';
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Ocurrió un error inesperado');

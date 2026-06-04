@@ -8,15 +8,13 @@ datasource db {
 }
 
 model users {
-  id        String   @id @default(uuid())
+  id        String   @id              // Firebase uid — lo asigna Firebase, no la BD
   name      String
   email     String   @unique
-  password  String
   role      Role     @default(USER)
   createdAt DateTime @default(now())
-  avatarUrl String? 
+  avatarUrl String?
   rentals   rentals[]
-
 }
 
 model Hardware {

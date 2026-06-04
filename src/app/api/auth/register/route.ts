@@ -1,79 +1,66 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { adminAuth } from '../../../../lib/firebase-admin';
 import { UserService } from '../../../../services/user.service';
-import { registerSchema } from '../../../../schemas/user.schema';
-import bcrypt from 'bcryptjs';
-import { users } from '../../../../types/user.types';
-
-/**
- * Intersección local para añadir `password` al tipo `users` de forma segura.
- * Necesaria porque el tipo base declara `password` como opcional para uso
- * en contextos donde no debe exponerse.
- */
-type UserWithPassword = users & { password: string };
 
 /**
  * `POST /api/auth/register`
  *
- * Endpoint dedicado al registro de nuevos usuarios.
- * A diferencia de `/api/auth/login`, este endpoint **solo** crea cuentas,
- * no inicia sesión automáticamente (no establece cookie).
+ * Crea el perfil de usuario en Neon DB tras un registro completado en Firebase Auth.
  *
  * ### Flujo
- * 1. Valida el body con `registerSchema` (Zod).
- * 2. Comprueba que el email no esté ya registrado.
- * 3. Hashea la contraseña con bcrypt (sal=10).
- * 4. Crea el usuario en la BD con rol `USER`.
- * 5. Devuelve los datos básicos del nuevo usuario (sin contraseña).
+ * 1. El cliente llama a `createUserWithEmailAndPassword` de Firebase y obtiene un ID token.
+ * 2. Envía `{ idToken, name }` a este endpoint.
+ * 3. El servidor verifica el token con Firebase Admin SDK y extrae `uid` + `email`.
+ * 4. Crea el usuario en Neon DB con el Firebase `uid` como clave primaria (sin contraseña).
+ * 5. Establece la cookie de sesión HttpOnly con el uid.
+ * 6. Devuelve el usuario creado.
  *
- * @remarks
- * En la aplicación web el registro se hace vía `/api/auth/login` (flujo unificado).
- * Este endpoint existe para uso externo o integraciones futuras.
- *
- * @returns `201` usuario creado | `400` email duplicado o datos inválidos | `500` error interno.
+ * @returns `201` usuario creado | `400` datos insuficientes | `409` ya existe | `500` error.
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    console.log('Body recibido:', JSON.stringify(body));
+    const { idToken, name } = await req.json();
 
-    const result = registerSchema.safeParse(body);
-
-    if (!result.success) {
-      console.error('Zod falló:', JSON.stringify(result.error.issues));
-      return NextResponse.json({
-        message: result.error.issues[0].message,
-        errors: result.error.issues  // 👈 ver en Network tab
-      }, { status: 400 });
+    if (!idToken || !name?.trim()) {
+      return NextResponse.json({ error: 'Token y nombre son requeridos' }, { status: 400 });
     }
 
-    const { name, email, password } = result.data;
+    // Verificar el ID token y obtener uid + email
+    const decoded = await adminAuth.verifyIdToken(idToken);
+    const { uid, email } = decoded;
 
-    // 2. Verificar si el usuario ya existe
-    const existingUser = await UserService.findByEmail(email);
-    if (existingUser) {
-      return NextResponse.json({ message: 'El correo ya está registrado' }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: 'El token no contiene email' }, { status: 400 });
     }
 
-    // 3. Encriptar contraseña
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Verificar que no exista ya en Neon DB
+    const existing = await UserService.getById(uid);
+    if (existing) {
+      return NextResponse.json({ error: 'El usuario ya está registrado' }, { status: 409 });
+    }
 
-    // 4. Crear usuario
-    // Nota: Usamos 'user' en minúsculas porque en UserService
-    // estamos normalizando todos los roles a minúsculas.
+    // Crear perfil en Neon DB con Firebase uid como id (sin contraseña)
     const newUser = await UserService.create({
-      name,
+      id: uid,
+      name: name.trim(),
       email,
-      password: hashedPassword,
-      role: 'USER'
+      role: 'USER',
     });
 
-    return NextResponse.json({
-      message: 'Cuenta creada con éxito',
-      user: { id: newUser.id, name: newUser.name, email: newUser.email }
-    }, { status: 201 });
+    // Establecer cookie de sesión
+    const cookieStore = await cookies();
+    cookieStore.set('token-commoda', uid, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
+    return NextResponse.json({ user: newUser, token: uid }, { status: 201 });
 
   } catch (error) {
     console.error('Error en registro:', error);
-    return NextResponse.json({ message: 'Error interno del servidor' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al crear el perfil de usuario' }, { status: 500 });
   }
 }

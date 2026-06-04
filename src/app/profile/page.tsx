@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
+import { updatePassword } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import { UserProfileCard } from '../../components/UserProfileCard';
 import { useAuth } from '../../context/AuthContext';
 import { BackButton } from '@/components/BackButton';
@@ -38,12 +40,12 @@ const EyeOffIcon = () => (
  * refleja los cambios del formulario en tiempo real antes de guardar.
  *
  * ### Seguridad de contraseña
- * - La contraseña solo se envía si el usuario ha rellenado el campo.
+ * - La contraseña solo se cambia si el usuario ha rellenado el campo.
  * - Se requiere confirmación de contraseña para evitar errores tipográficos.
  * - `pwdMismatch` desactiva el botón de envío y muestra un indicador inline
- *   en cuanto hay discrepancia, antes de llegar al backend.
- * - El servidor hashea la contraseña con bcrypt antes de almacenarla;
- *   el cliente siempre envía texto plano sobre HTTPS.
+ *   en cuanto hay discrepancia.
+ * - El cambio de contraseña se realiza con `updatePassword` de Firebase Auth;
+ *   el nombre se actualiza en Neon DB vía `PATCH /api/users/[id]`.
  *
  * ### Estado local
  * - `name`                → nombre editable del usuario.
@@ -92,28 +94,39 @@ export default function ProfilePage() {
 
     setLoading(true);
     try {
+      // 1. Actualiza el nombre en Neon DB
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          // Solo incluye la contraseña si el usuario la ha rellenado
-          ...(password && { password }),
-        }),
+        body: JSON.stringify({ name }),
       });
 
       if (!response.ok) throw new Error('Error al actualizar');
 
       const updatedUser = await response.json();
+
+      // 2. Si el usuario quiere cambiar la contraseña, se hace en Firebase Auth
+      if (password) {
+        if (!auth.currentUser) throw new Error('Sesión expirada, vuelve a iniciar sesión');
+        await updatePassword(auth.currentUser, password);
+      }
+
       updateUser(updatedUser);
       toast.success('¡Cambios guardados con éxito!');
 
       // Limpia los campos de contraseña tras guardar
       setPassword('');
       setConfirmPassword('');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error('Error al conectar con el servidor');
+      const code = (error as { code?: string })?.code;
+      if (code === 'auth/requires-recent-login') {
+        toast.error('Por seguridad, vuelve a iniciar sesión para cambiar la contraseña');
+      } else if (code === 'auth/weak-password') {
+        toast.error('La contraseña debe tener al menos 6 caracteres');
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Error al conectar con el servidor');
+      }
     } finally {
       setLoading(false);
     }

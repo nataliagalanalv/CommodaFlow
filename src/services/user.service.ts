@@ -1,118 +1,83 @@
 import { neon } from '@neondatabase/serverless';
-import { prisma } from '../lib/prisma';
-import { Prisma } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 import { users as CustomUser, UserCreateInput, UpdateUserRequest } from '../types/user.types';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Conexión directa a Neon (PostgreSQL serverless) mediante el driver HTTP.
  * Se usa en operaciones de usuario porque el modelo `users` se gestiona con
- * consultas SQL puras para mayor control sobre la normalización del rol,
- * mientras que `Hardware` y `rentals` usan el cliente Prisma ORM.
+ * consultas SQL puras para mayor control sobre la normalización del rol.
  */
 const sql = neon(process.env.DATABASE_URL!);
 
 /**
  * Servicio de acceso a datos para el modelo `users`.
  *
- * Usa SQL nativo vía Neon (en lugar del ORM Prisma) porque la tabla `users`
- * mezcla valores de enum en formato "ADMIN"/"USER" (BD) con el formato
- * normalizado en minúsculas que usa la capa de presentación.
- * Todas las funciones devuelven el rol en minúsculas para coherencia con
- * las comprobaciones de acceso del frontend (`user.role === 'admin'`).
+ * Desde la integración con Firebase Auth, este servicio ya NO gestiona
+ * contraseñas — Firebase se encarga de toda la autenticación. Neon DB
+ * almacena únicamente el perfil extendido del usuario (nombre, rol, etc.)
+ * indexado por el Firebase `uid`.
  */
 export const UserService = {
 
   /**
    * Busca un usuario por su dirección de email.
-   * Se usa en el proceso de login para verificar si el usuario existe
-   * antes de comparar la contraseña.
    *
-   * @param email - Email a buscar (case-sensitive según la BD).
-   * @returns El usuario si existe (incluyendo `password` hash), o `null`.
+   * @param email - Email a buscar.
+   * @returns El usuario si existe, o `null`.
    */
   findByEmail: async (email: string): Promise<CustomUser | null> => {
     const result = await sql`SELECT * FROM users WHERE email = ${email}`;
     if (result.length === 0) return null;
-
-    const user = result[0];
-    return {...user, role: user.role.toLowerCase() } as CustomUser;
+    return { ...result[0], role: result[0].role.toLowerCase() } as CustomUser;
   },
 
   /**
-   * Crea un nuevo usuario en la base de datos.
-   * La contraseña debe haberse hasheado con bcrypt **antes** de llamar a esta función;
-   * el servicio no realiza el hash por sí mismo en este método.
+   * Crea un nuevo perfil de usuario en Neon DB.
+   * El `id` debe ser el Firebase uid proporcionado por Firebase Auth;
+   * ya no se genera un UUID local.
    *
-   * @param data - Datos del nuevo usuario (incluyendo `password` ya hasheada).
+   * @param data - Datos del usuario (id = Firebase uid, sin contraseña).
    * @returns El usuario creado con el `role` normalizado a minúsculas.
    */
   create: async (data: UserCreateInput): Promise<CustomUser> => {
-    const id = uuidv4();
     const result = await sql`
-      INSERT INTO users (id, name, email, password, role)
-      VALUES (${id}, ${data.name}, ${data.email}, ${data.password}, ${data.role})
+      INSERT INTO users (id, name, email, role)
+      VALUES (${data.id}, ${data.name}, ${data.email}, ${data.role})
       RETURNING *
     `;
-    const user = result[0];
-    return {...user, role: user.role.toLowerCase()} as CustomUser;
+    return { ...result[0], role: result[0].role.toLowerCase() } as CustomUser;
   },
 
   /**
-   * Obtiene los datos públicos de un usuario por su UUID.
-   * Excluye deliberadamente el campo `password` para que no se
-   * filtre en respuestas de API ni en el estado de sesión del cliente.
+   * Obtiene los datos de un usuario por su Firebase uid.
    *
-   * @param id - UUID del usuario a buscar.
-   * @returns El usuario sin contraseña, o `null` si no existe.
+   * @param id - Firebase uid del usuario.
+   * @returns El usuario o `null` si no existe.
    */
-  async getById(id: string): Promise<Omit<CustomUser, 'password'> | null> {
+  async getById(id: string): Promise<CustomUser | null> {
     const result = await sql`SELECT * FROM users WHERE id = ${id}`;
     if (result.length === 0) return null;
-
-    const { password: _, ...user } = result[0];
-    return { ...user, role: user.role.toLowerCase() } as Omit<CustomUser, 'password'>;
+    return { ...result[0], role: result[0].role.toLowerCase() } as CustomUser;
   },
 
   /**
-   * Actualiza los datos modificables de un usuario existente (`name` y/o `password`).
+   * Actualiza el nombre del usuario.
+   * La contraseña ya no se gestiona aquí — Firebase Auth la maneja.
    *
-   * Si se proporciona una nueva contraseña en texto plano, esta función la hashea
-   * con bcrypt (sal=10) antes de almacenarla, garantizando que nunca se guarda
-   * en claro en la base de datos. Los campos no incluidos en `data` no se modifican
-   * gracias al uso de `COALESCE` en la consulta SQL.
-   *
-   * @param id   - UUID del usuario a actualizar.
-   * @param data - Campos a modificar (`name` y/o `password` en texto plano).
-   * @returns El usuario actualizado sin el campo `password`.
-   * @throws Error si no se proporcionan campos para actualizar o el usuario no existe.
+   * @param id   - Firebase uid del usuario.
+   * @param data - Campos a modificar (solo `name`).
+   * @returns El usuario actualizado.
    */
-  async update(id: string, data: UpdateUserRequest): Promise<Omit<CustomUser, 'password'>> {
-    // Hashear password si viene
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
-
-    // Construir dinámicamente solo los campos que llegan
-    const fields = Object.keys(data) as (keyof typeof data)[];
-
-    if (fields.length === 0) throw new Error('No hay campos para actualizar');
-
-    // Verificar que existe primero
+  async update(id: string, data: UpdateUserRequest): Promise<CustomUser> {
     const exists = await sql`SELECT id FROM users WHERE id = ${id}`;
-    if (exists.length === 0) throw new Error(`No record was found for an update`);
+    if (exists.length === 0) throw new Error('Usuario no encontrado');
 
     const result = await sql`
       UPDATE users
-      SET
-        name     = COALESCE(${data.name ?? null}, name),
-        password = COALESCE(${data.password ?? null}, password)
+      SET name = COALESCE(${data.name ?? null}, name)
       WHERE id = ${id}
       RETURNING *
     `;
 
-    const { password: _, ...user } = result[0];
-    return { ...user, role: user.role.toLowerCase() } as Omit<CustomUser, 'password'>;
-  }
+    return { ...result[0], role: result[0].role.toLowerCase() } as CustomUser;
+  },
 };

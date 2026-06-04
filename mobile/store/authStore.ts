@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import { User } from '../types';
 
 /**
@@ -70,7 +72,11 @@ export const useAuthStore = create<AuthStore>()(
       isHydrated: false,
       setAuth: (user, token) => set({ user, token, isAuthenticated: true }),
       updateUser: (user) => set({ user }),
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
+      logout: () => {
+        // Cierra también la sesión de Firebase, no solo el estado local
+        signOut(auth).catch(() => { /* ignora errores de red al cerrar sesión */ });
+        set({ user: null, token: null, isAuthenticated: false });
+      },
       setHydrated: () => set({ isHydrated: true }),
     }),
     {

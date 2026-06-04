@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { updatePassword } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import { useAuthStore } from '../../store/authStore';
 import { Colors, Theme, Typography, Spacing, Radius } from '../../constants/theme';
 import { API_URL } from '../../constants/api';
@@ -110,16 +112,21 @@ export default function PerfilScreen() {
 
     setIsLoading(true);
     try {
-      const body: Record<string, string> = { name };
-      if (password.trim()) body.password = password;
-
+      // 1. Actualiza el nombre en Neon DB
       const res = await fetch(`${API_URL}/api/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error('Error al actualizar');
       const updated = await res.json();
+
+      // 2. Si hay nueva contraseña, se cambia en Firebase Auth
+      if (password.trim()) {
+        if (!auth.currentUser) throw new Error('Sesión expirada, vuelve a iniciar sesión');
+        await updatePassword(auth.currentUser, password);
+      }
+
       updateUser({ ...user, name: updated.name ?? name });
 
       // Limpia campos de contraseña tras guardar
@@ -128,8 +135,15 @@ export default function PerfilScreen() {
       setShowPasswordField(false);
 
       Alert.alert('¡Guardado!', 'Tus datos se han actualizado correctamente.');
-    } catch {
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code;
+      if (code === 'auth/requires-recent-login') {
+        Alert.alert('Sesión caducada', 'Por seguridad, vuelve a iniciar sesión para cambiar la contraseña.');
+      } else if (code === 'auth/weak-password') {
+        Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres.');
+      } else {
+        Alert.alert('Error', err instanceof Error ? err.message : 'No se pudo conectar con el servidor.');
+      }
     } finally {
       setIsLoading(false);
     }

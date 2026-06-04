@@ -5,20 +5,13 @@ import { UpdateUserRequest } from '../../../../types/user.types';
 /**
  * `PATCH /api/users/[id]`
  *
- * Actualiza los datos modificables del perfil de un usuario.
- * Solo acepta los campos `name` y/o `password`; cualquier otro campo
- * del body se ignora para evitar escaladas de privilegios.
+ * Actualiza el perfil de un usuario en Neon DB. Solo acepta el campo `name`;
+ * la contraseña se gestiona en Firebase Auth (no pasa por este endpoint).
  *
- * ### Manejo de contraseña
- * Si `password` se incluye en el body, `UserService.update` la hashea con
- * bcrypt antes de almacenarla; el cliente siempre envía la contraseña en
- * texto plano y el servidor garantiza que nunca se persiste sin cifrar.
+ * @param request - Petición PATCH con body `{ name? }`.
+ * @param context - Contexto de ruta; `params.id` es el Firebase uid del usuario.
  *
- * @param request - Petición PATCH con body `{ name?, password? }`.
- * @param context - Contexto de ruta; `params.id` es el UUID del usuario a modificar.
- *
- * @returns `200` usuario actualizado (sin contraseña) |
- *          `400` sin ID o sin campos válidos | `500` error interno o usuario no encontrado.
+ * @returns `200` usuario actualizado | `400` sin ID o sin campos | `500` error.
  */
 export async function PATCH(
   request: NextRequest,
@@ -35,10 +28,9 @@ export async function PATCH(
       );
     }
 
-    // Filtrar solo los campos permitidos para evitar modificaciones no autorizadas
+    // Solo se permite actualizar el nombre; el resto se ignora
     const dataToUpdate: UpdateUserRequest = {
       ...(body.name !== undefined && { name: body.name }),
-      ...(body.password !== undefined && { password: body.password }),
     };
 
     if (Object.keys(dataToUpdate).length === 0) {

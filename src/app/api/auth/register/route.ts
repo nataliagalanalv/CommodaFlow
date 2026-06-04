@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { adminAuth } from '../../../../lib/firebase-admin';
+import { getAdminAuth } from '../../../../lib/firebase-admin';
 import { UserService } from '../../../../services/user.service';
 
 /**
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     // Verificar el ID token y obtener uid + email
-    const decoded = await adminAuth.verifyIdToken(idToken);
+    const decoded = await getAdminAuth().verifyIdToken(idToken);
     const { uid, email } = decoded;
 
     if (!email) {

@@ -1,0 +1,55 @@
+name: Tests
+
+# Ejecuta la CI en cada push y en cada pull request hacia main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Tests de la aplicación móvil (Jest) ────────────────────────────────────
+  mobile-tests:
+    name: Mobile · Jest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar tests con cobertura
+        run: npm test -- --coverage --ci
+
+  # ── Chequeo de tipos de la app web (Next.js) ───────────────────────────────
+  web-typecheck:
+    name: Web · TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar cliente Prisma
+        run: npx prisma generate
+
+      - name: Comprobar tipos (tsc)
+        run: npx tsc --noEmit

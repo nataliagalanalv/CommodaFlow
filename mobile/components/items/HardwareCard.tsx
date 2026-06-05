@@ -76,7 +76,14 @@ export function HardwareCard({ item, onPress, index = 0 }: Props) {
 
   return (
     <Animated.View entering={FadeInDown.delay(Math.min(index, 10) * 50).springify().damping(18)}>
-      <TouchableOpacity style={[s.card, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={[s.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+        onPress={onPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.model}, ${STATUS_LABEL[item.status]}, ${item.dailyRate} euros por día`}
+        accessibilityHint={item.status === 'AVAILABLE' ? 'Toca para alquilar este equipo' : undefined}
+      >
         <View style={[s.iconContainer, { backgroundColor: categoryColor + '20' }]}>
           <Ionicons name={CATEGORY_ICON[item.category] ?? 'cube-outline'} size={28} color={categoryColor} />
         </View>

@@ -203,13 +203,20 @@ export default function InventarioScreen() {
           onChangeText={setSearch}
         />
         {search.length > 0 && (
-          <TouchableOpacity onPress={() => setSearch('')}>
+          <TouchableOpacity
+            onPress={() => setSearch('')}
+            accessibilityRole="button"
+            accessibilityLabel="Borrar búsqueda"
+          >
             <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
         )}
         <TouchableOpacity
           style={[s.filterBtn, { backgroundColor: activeFilterCount > 0 ? theme.primary : theme.primaryLight }]}
           onPress={() => setFiltersOpen(!filtersOpen)}
+          accessibilityRole="button"
+          accessibilityLabel={`Filtros${activeFilterCount > 0 ? `, ${activeFilterCount} activos` : ''}`}
+          accessibilityState={{ expanded: filtersOpen }}
         >
           <Ionicons name="options-outline" size={16} color={activeFilterCount > 0 ? '#fff' : theme.primary} />
           {activeFilterCount > 0 && (

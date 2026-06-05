@@ -227,6 +227,8 @@ export default function PerfilScreen() {
                     style={s.eyeBtn}
                     onPress={() => setShowPassword((v) => !v)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     <Ionicons
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -259,6 +261,8 @@ export default function PerfilScreen() {
                     style={s.eyeBtn}
                     onPress={() => setShowConfirmPassword((v) => !v)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={showConfirmPassword ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'}
                   >
                     <Ionicons
                       name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}

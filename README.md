@@ -22,7 +22,6 @@ Ambas consumen la misma API REST alojada en el servidor Next.js y comparten la b
 
 <!-- Sustituye los enlaces de abajo cuando tengas la demo y la release publicadas -->
 
-- **Vídeo demo técnica (5 min):** [Ver en Loom](#) <!-- TODO: pegar enlace de Loom -->
 - **App web en producción:** [commoda-flow-frontend.vercel.app](https://commoda-flow-frontend.vercel.app)
 - **Descarga APK (Android):** [Última release](#) <!-- TODO: pegar enlace al APK de EAS/GitHub Releases -->
 
@@ -59,9 +58,6 @@ Ambas consumen la misma API REST alojada en el servidor Next.js y comparten la b
       │  (identidad) │   │ (PostgreSQL) │
       └──────────────┘   └──────────────┘
 ```
-
-> El diagrama detallado está en [`docs/arquitectura/diagrama.png`](docs/arquitectura/diagrama.png) y las decisiones de arquitectura en [`docs/adr/`](docs/adr/).
-
 ---
 
 ## Tecnologías

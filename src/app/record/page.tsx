@@ -36,7 +36,7 @@ export default function RecordPage() {
   const { user } = useAuth();
   const userId = user?.id;
 
-  const { data, loading: isLoading, error, refetch } = useFetchRentals(userId);
+  const { data, loading: isLoading, refetch } = useFetchRentals(userId);
 
   // 3. Forzamos a que 'data' use tu tipo Rental
   const rentals = (data || []) as Rental[];

@@ -327,6 +327,9 @@ export default function AlquileresScreen() {
       clearTimeout(timeoutId);
       setLoading(false);
     }
+    // setItems/setLoading/setError son setters de Zustand con referencia estable;
+    // no hace falta incluirlos en las dependencias.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user?.id]);
 
   /** Refresca los alquileres cada vez que la pestaña obtiene el foco. */

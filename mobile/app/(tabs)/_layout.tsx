@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { Tabs, Redirect } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/theme';
 import { useAuthStore } from '../../store/authStore';
+import { requestNotificationPermission } from '../../lib/notifications';
 
 /**
  * Layout del grupo de pestañas `(tabs)`.
@@ -31,6 +33,16 @@ export default function TabsLayout() {
   const { isAuthenticated, isHydrated } = useAuthStore();
   const scheme = useColorScheme();
   const theme = Colors[scheme ?? 'light'];
+
+  // Solicita el permiso de notificaciones la primera vez que el usuario entra
+  // autenticado en la app (tanto si se registró como si solo inició sesión).
+  // El sistema operativo solo muestra el diálogo una vez; si ya respondió antes,
+  // esta llamada no vuelve a molestar.
+  useEffect(() => {
+    if (isAuthenticated) {
+      requestNotificationPermission();
+    }
+  }, [isAuthenticated]);
 
   if (!isHydrated) return null;
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;

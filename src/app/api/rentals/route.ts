@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       Number(totalPrice ?? 0),
     );
     return NextResponse.json(rental, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "No se pudo procesar el alquiler" }, { status: 500 });
   }
 }

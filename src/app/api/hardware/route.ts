@@ -16,7 +16,7 @@ export async function GET() {
     // La ruta solo pide los datos al servicio
     const allHardware = await HardwareService.getAll();
     return NextResponse.json(allHardware);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Error al obtener hardware" }, { status: 500 });
   }
 }

@@ -71,8 +71,6 @@ export default function AddHardwarePage() {
         throw new Error('Error al guardar en el servidor');
       }
 
-      console.log('✅ Hardware guardado con éxito en Neon');
-
       router.push('/');
       router.refresh();
 

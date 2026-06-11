@@ -6,7 +6,6 @@ import { SearchBar } from '../components/SearchBar';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FilterBar } from '@/components/FilterBar';
-import router from 'next/dist/shared/lib/router/router';
 
 /**
  * Página principal (`/`) — Inventario de hardware.

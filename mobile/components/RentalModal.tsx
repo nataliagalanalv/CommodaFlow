@@ -132,6 +132,11 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
   /** Qué picker está activo ('start', 'end' o `null` = ninguno). */
   const [activePicker, setActivePicker] = useState<'start' | 'end' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  /**
+   * Antelación del recordatorio de devolución, en días:
+   * `null` = sin aviso, `0` = el mismo día, `1` = el día antes.
+   */
+  const [reminderDays, setReminderDays] = useState<number | null>(0);
 
   /** Fecha de hoy sin horas — sirve como `minimumDate` para el picker de inicio. */
   const today = useMemo(() => {
@@ -232,8 +237,10 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
       }
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      // Programa un recordatorio local para el día de devolución
-      await scheduleReturnReminder(item.model, endDate);
+      // Programa el recordatorio local con la antelación elegida (si el usuario lo activó)
+      if (reminderDays !== null) {
+        await scheduleReturnReminder(item.model, endDate, reminderDays);
+      }
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -361,6 +368,42 @@ export function RentalModal({ item, onClose, onSuccess, userId, token }: Props) 
               </View>
             </View>
 
+            {/* Selector de recordatorio de devolución */}
+            <View>
+              <View style={s.reminderHeader}>
+                <Ionicons name="notifications-outline" size={15} color={theme.textSecondary} />
+                <Text style={[s.reminderLabel, { color: theme.textSecondary }]}>Recordarme la devolución</Text>
+              </View>
+              <View style={s.reminderRow}>
+                {[
+                  { label: 'Sin aviso', value: null },
+                  { label: 'El mismo día', value: 0 },
+                  { label: 'El día antes', value: 1 },
+                ].map((opt) => {
+                  const active = reminderDays === opt.value;
+                  return (
+                    <TouchableOpacity
+                      key={opt.label}
+                      style={[
+                        s.reminderChip,
+                        active
+                          ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                          : { backgroundColor: theme.background, borderColor: theme.border },
+                      ]}
+                      onPress={() => setReminderDays(opt.value)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      accessibilityLabel={`Recordatorio: ${opt.label}`}
+                    >
+                      <Text style={[s.reminderChipText, { color: active ? '#fff' : theme.textSecondary }]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
             {/* Botones */}
             <View style={s.buttonsRow}>
               <TouchableOpacity
@@ -463,6 +506,12 @@ const s = StyleSheet.create({
   priceDays: { fontSize: Typography.xs, marginTop: 2 },
   rateTag: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.sm },
   rateText: { fontSize: Typography.sm, fontWeight: '800' },
+  // reminder selector
+  reminderHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: Spacing.xs },
+  reminderLabel: { fontSize: Typography.xs, fontWeight: '700', letterSpacing: 0.5 },
+  reminderRow: { flexDirection: 'row', gap: Spacing.xs },
+  reminderChip: { flex: 1, paddingVertical: Spacing.sm, borderRadius: Radius.md, borderWidth: 1, alignItems: 'center' },
+  reminderChipText: { fontSize: Typography.xs, fontWeight: '700' },
   // buttons
   buttonsRow: { flexDirection: 'row', gap: Spacing.md, paddingBottom: Spacing.md },
   btnCancel: { flex: 1, padding: Spacing.md, borderRadius: Radius.md, alignItems: 'center' },

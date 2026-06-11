@@ -50,32 +50,39 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 /**
  * Programa una notificación local que recuerda al usuario la devolución de un
- * equipo el día en que vence el alquiler.
+ * equipo, a las 10:00 de la mañana, con la antelación elegida.
  *
- * El recordatorio se programa para las 10:00 de la mañana de la fecha de fin.
- * Si esa fecha/hora ya pasó, no programa nada (devuelve `null`).
- *
- * @param model   - Modelo del equipo alquilado (para el cuerpo de la notificación).
- * @param endDate - Fecha de fin del alquiler en formato ISO (`YYYY-MM-DD`).
- * @returns El identificador de la notificación programada, o `null` si no se programó.
+ * @param model      - Modelo del equipo alquilado (para el cuerpo de la notificación).
+ * @param endDate    - Fecha de fin del alquiler en formato ISO (`YYYY-MM-DD`).
+ * @param daysBefore - Días de antelación respecto a la fecha de fin:
+ *                     `0` = el mismo día de la devolución, `1` = el día anterior.
+ * @returns El identificador de la notificación programada, o `null` si no se
+ *          programó (permiso denegado, fecha inválida o ya pasada).
  */
 export async function scheduleReturnReminder(
   model: string,
-  endDate: string
+  endDate: string,
+  daysBefore: number = 0
 ): Promise<string | null> {
   const granted = await requestNotificationPermission();
   if (!granted) return null;
 
-  // Recordatorio a las 10:00 del día de vencimiento
+  // Recordatorio a las 10:00, restando los días de antelación elegidos
   const triggerDate = new Date(endDate + 'T10:00:00');
+  triggerDate.setDate(triggerDate.getDate() - daysBefore);
   if (isNaN(triggerDate.getTime()) || triggerDate.getTime() <= Date.now()) {
     return null;
   }
 
+  // El cuerpo cambia según se avise el mismo día o el día anterior
+  const body = daysBefore === 0
+    ? `Hoy vence el alquiler de "${model}". No olvides devolverlo.`
+    : `Mañana vence el alquiler de "${model}". Prepárate para devolverlo.`;
+
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: '📦 Devolución de equipo',
-      body: `Hoy vence el alquiler de "${model}". No olvides devolverlo.`,
+      body,
       sound: true,
     },
     trigger: {

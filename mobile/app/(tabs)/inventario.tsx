@@ -165,6 +165,9 @@ export default function InventarioScreen() {
       clearTimeout(timeoutId);
       setLoading(false);
     }
+    // setItems/setLoading/setError son setters de Zustand con referencia estable;
+    // no hace falta incluirlos en las dependencias.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   /** Refresca el inventario cada vez que la pestaña obtiene el foco. */

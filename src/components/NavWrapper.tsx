@@ -38,8 +38,12 @@ export const NavWrapper = () => {
   /** Etiqueta de rol normalizada para mostrar en la UI. */
   const displayRole = user?.role?.toLowerCase() === 'admin' ? 'Administrador' : 'Usuario';
 
+  // Refresca el usuario una sola vez al montar la barra de navegación.
+  // `refreshUser` se omite a propósito de las dependencias: incluirlo provocaría
+  // re-ejecuciones innecesarias, ya que la función no está memoizada en el contexto.
   useEffect(() => {
     refreshUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

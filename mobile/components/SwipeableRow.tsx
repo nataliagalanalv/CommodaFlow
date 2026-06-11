@@ -56,6 +56,11 @@ interface Props {
 export function SwipeableRow({ children, onSwipe, actionLabel, actionColor, icon }: Props) {
   const translateX = useSharedValue(0);
 
+  // Mutar `translateX.value` es la API correcta de Reanimated para los "shared
+  // values" dentro de un worklet de gesto. La regla react-hooks/immutability
+  // (pensada para el React Compiler) no reconoce este patrón, por lo que se
+  // desactiva de forma acotada solo en este bloque.
+  /* eslint-disable react-hooks/immutability */
   const pan = Gesture.Pan()
     .activeOffsetX([-15, 15]) // solo activa el gesto en horizontal, no interfiere con el scroll vertical
     .onUpdate((e) => {
@@ -75,6 +80,7 @@ export function SwipeableRow({ children, onSwipe, actionLabel, actionColor, icon
         translateX.value = withSpring(0);
       }
     });
+  /* eslint-enable react-hooks/immutability */
 
   /** Estilo animado del contenido: se mueve horizontalmente según el gesto. */
   const cardStyle = useAnimatedStyle(() => ({
